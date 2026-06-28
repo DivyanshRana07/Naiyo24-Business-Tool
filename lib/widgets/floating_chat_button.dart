@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../theme/theme.dart';
+import 'chat_support_popup.dart';
 
 /// Floating chat bubble – UI placeholder only.
 class FloatingChatButton extends StatefulWidget {
@@ -82,7 +83,7 @@ class _FloatingChatButtonState extends State<FloatingChatButton>
             child: ScaleTransition(
               scale: _scaleAnim,
               child: GestureDetector(
-                onTap: () {},
+                onTap: () => showChatSupportPopup(context),
                 child: Container(
                   width: 52,
                   height: 52,

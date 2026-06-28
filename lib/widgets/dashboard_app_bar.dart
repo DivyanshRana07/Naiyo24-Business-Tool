@@ -6,6 +6,7 @@ import '../../routes/app_routes.dart';
 import '../../notifiers/auth_notifier.dart';
 import '../../providers/sidebar_provider.dart';
 import 'logo_widget.dart';
+import 'chat_support_popup.dart';
 
 class DashboardAppBar extends ConsumerWidget implements PreferredSizeWidget {
   const DashboardAppBar({super.key, this.email});
@@ -61,7 +62,7 @@ class DashboardAppBar extends ConsumerWidget implements PreferredSizeWidget {
       actions: [
         IconButton(
           icon: const Icon(Icons.help_outline_rounded, color: Colors.white),
-          onPressed: () {},
+          onPressed: () => showChatSupportPopup(context),
           tooltip: 'Support',
         ),
         const SizedBox(width: AppSpacing.xs),

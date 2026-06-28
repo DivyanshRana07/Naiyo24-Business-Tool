@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../theme/theme.dart';
+import 'chat_support_popup.dart';
 
 /// Top navigation header used across auth screens.
 ///
@@ -113,7 +114,7 @@ class _SupportButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return TextButton.icon(
-      onPressed: onTap ?? () {},
+      onPressed: onTap ?? () => showChatSupportPopup(context),
       icon: const Icon(Icons.headset_mic_outlined, size: 18, color: AppColors.textOnPrimary),
       label: Text(
         'Support',
