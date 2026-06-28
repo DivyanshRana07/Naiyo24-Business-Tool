@@ -94,9 +94,7 @@ GoRouter appRouter(Ref ref) {
       }
 
       // Logged in → trying to access an auth screen
-      if (AppRoutes.isAuthScreen(location) && isLoggedIn) {
-        return AppRoutes.dashboard;
-      }
+      // Removed global redirect so manual navigation to /login stays on /login.
 
       return null; // No redirect needed
     },

@@ -12,16 +12,18 @@ class LogoWidget extends StatelessWidget {
     this.fontSize = 24,
     this.showTagline = false,
     this.textColor,
+    this.secondaryTextColor,
   });
 
   final double fontSize;
   final bool showTagline;
   final Color? textColor;
+  final Color? secondaryTextColor;
 
   @override
   Widget build(BuildContext context) {
-    final wordmarkColor = textColor ?? AppColors.textPrimary;
-    final primaryPartColor = textColor != null ? textColor! : AppColors.primary;
+    final wordmarkColor = secondaryTextColor ?? (textColor ?? AppColors.textPrimary);
+    final primaryPartColor = textColor ?? AppColors.primary;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,

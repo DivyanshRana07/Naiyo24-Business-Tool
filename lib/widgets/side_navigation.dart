@@ -92,12 +92,12 @@ class _SideNavigationState extends ConsumerState<SideNavigation> {
                                 children: [
                                   Text(
                                     'Demo User',
-                                    style: AppTextStyles.labelLarge,
+                                    style: AppTextStyles.labelLarge.copyWith(color: AppColors.textPrimary),
                                     overflow: TextOverflow.ellipsis,
                                   ),
                                   Text(
                                     widget.email ?? '',
-                                    style: AppTextStyles.caption,
+                                    style: AppTextStyles.caption.copyWith(color: AppColors.textSecondary),
                                     overflow: TextOverflow.ellipsis,
                                   ),
                                 ],

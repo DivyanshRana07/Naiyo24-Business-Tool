@@ -188,7 +188,7 @@ class _QuickActionsSection extends StatelessWidget {
                     avatar: Icon(a['icon'] as IconData, size: 18, color: a['color'] as Color),
                     label: Text(
                       a['label'] as String,
-                      style: AppTextStyles.labelLarge,
+                      style: AppTextStyles.labelLarge.copyWith(color: Colors.black87),
                     ),
                     backgroundColor: AppColors.surface,
                     side: const BorderSide(color: AppColors.border),

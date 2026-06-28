@@ -1,21 +1,23 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../providers/auth_provider.dart';
 import '../../routes/app_routes.dart';
 import '../../theme/theme.dart';
 import '../../widgets/logo_widget.dart';
 
 /// Splash screen shown at app start.
 ///
-/// Displays the logo for 2 seconds then navigates to [LoginScreen].
-class SplashScreen extends StatefulWidget {
+/// Displays the logo for 2 seconds then navigates based on auth state.
+class SplashScreen extends ConsumerStatefulWidget {
   const SplashScreen({super.key});
 
   @override
-  State<SplashScreen> createState() => _SplashScreenState();
+  ConsumerState<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen>
+class _SplashScreenState extends ConsumerState<SplashScreen>
     with SingleTickerProviderStateMixin {
   late final AnimationController _controller;
   late final Animation<double> _fadeAnim;
@@ -45,7 +47,8 @@ class _SplashScreenState extends State<SplashScreen>
 
   void _navigate() {
     if (!mounted) return;
-    context.go(AppRoutes.login);
+    final isLoggedIn = ref.read(authProvider).isLoggedIn;
+    context.go(isLoggedIn ? AppRoutes.dashboard : AppRoutes.login);
   }
 
   @override
