@@ -56,13 +56,15 @@ class _SideNavigationState extends ConsumerState<SideNavigation> {
                 padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
                 children: [
                   // User Profile Box
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: AppSpacing.md,
+                  AnimatedPadding(
+                    duration: const Duration(milliseconds: 250),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: isExpanded ? AppSpacing.md : 4.0,
                       vertical: AppSpacing.sm,
                     ),
-                    child: Container(
-                      padding: const EdgeInsets.all(AppSpacing.md),
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 250),
+                      padding: EdgeInsets.all(isExpanded ? AppSpacing.md : 8.0),
                       decoration: BoxDecoration(
                         color: AppColors.primary.withValues(alpha: 0.05),
                         borderRadius: BorderRadius.circular(AppBorderRadius.md),
@@ -191,9 +193,10 @@ class _NavTileState extends State<_NavTile> {
     return MouseRegion(
       onEnter: (_) => setState(() => _isHovered = true),
       onExit: (_) => setState(() => _isHovered = false),
-      child: Container(
-        margin: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.sm,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 250),
+        margin: EdgeInsets.symmetric(
+          horizontal: widget.isExpanded ? AppSpacing.sm : 4.0,
           vertical: 2,
         ),
         decoration: BoxDecoration(
@@ -206,9 +209,10 @@ class _NavTileState extends State<_NavTile> {
         child: InkWell(
           onTap: widget.onTap,
           borderRadius: BorderRadius.circular(AppBorderRadius.md),
-          child: Container(
-            padding: const EdgeInsets.symmetric(
-              horizontal: AppSpacing.md,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 250),
+            padding: EdgeInsets.symmetric(
+              horizontal: widget.isExpanded ? AppSpacing.md : (widget.selected ? 6.0 : 8.0),
               vertical: AppSpacing.md,
             ),
             child: Row(
