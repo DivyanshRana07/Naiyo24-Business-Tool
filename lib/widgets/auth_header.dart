@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import '../core/theme/app_theme.dart';
+import '../theme/theme.dart';
 
 /// Top navigation header used across auth screens.
 ///
@@ -26,29 +26,29 @@ class AuthHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(
-        horizontal: AppPadding.lg,
-        vertical: AppPadding.md,
+        horizontal: AppSpacing.lg,
+        vertical: AppSpacing.md,
       ),
       decoration: const BoxDecoration(
-        color: AppColors.surface,
-        border: Border(
-          bottom: BorderSide(color: AppColors.border, width: 1),
-        ),
+        gradient: AppGradients.navbar,
       ),
-      child: Row(
-        children: [
-          // ── Logo ──────────────────────────────────────────────────
-          _LogoMark(),
-          const Spacer(),
+      child: SafeArea(
+        bottom: false,
+        child: Row(
+          children: [
+            // ── Logo ──────────────────────────────────────────────────
+            _LogoMark(),
+            const Spacer(),
 
-          // ── Action buttons ────────────────────────────────────────
-          _SupportButton(onTap: onSupportTap),
-          const SizedBox(width: AppPadding.sm),
-          if (showRegister)
-            _RegisterButton(onTap: onRegisterTap),
-          if (showLogin)
-            _LoginButton(onTap: onLoginTap),
-        ],
+            // ── Action buttons ────────────────────────────────────────
+            _SupportButton(onTap: onSupportTap),
+            const SizedBox(width: AppSpacing.sm),
+            if (showRegister)
+              _RegisterButton(onTap: onRegisterTap),
+            if (showLogin)
+              _LoginButton(onTap: onLoginTap),
+          ],
+        ),
       ),
     );
   }
@@ -64,12 +64,8 @@ class _LogoMark extends StatelessWidget {
           width: 32,
           height: 32,
           decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              colors: [AppColors.primary, AppColors.primaryDark],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-            borderRadius: BorderRadius.circular(AppRadius.sm),
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(AppBorderRadius.sm),
           ),
           child: const Center(
             child: Text(
@@ -77,7 +73,7 @@ class _LogoMark extends StatelessWidget {
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w800,
-                color: Colors.white,
+                color: AppColors.primary,
               ),
             ),
           ),
@@ -91,7 +87,7 @@ class _LogoMark extends StatelessWidget {
                 style: GoogleFonts.inter(
                   fontSize: 20,
                   fontWeight: FontWeight.w800,
-                  color: AppColors.primary,
+                  color: AppColors.textOnPrimary,
                 ),
               ),
               TextSpan(
@@ -99,7 +95,7 @@ class _LogoMark extends StatelessWidget {
                 style: GoogleFonts.inter(
                   fontSize: 20,
                   fontWeight: FontWeight.w800,
-                  color: AppColors.textPrimary,
+                  color: AppColors.textOnPrimary,
                 ),
               ),
             ],
@@ -118,19 +114,20 @@ class _SupportButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return TextButton.icon(
       onPressed: onTap ?? () {},
-      icon: const Icon(Icons.headset_mic_outlined, size: 18),
+      icon: const Icon(Icons.headset_mic_outlined, size: 18, color: AppColors.textOnPrimary),
       label: Text(
         'Support',
         style: GoogleFonts.inter(
           fontSize: 14,
           fontWeight: FontWeight.w500,
+          color: AppColors.textOnPrimary,
         ),
       ),
       style: TextButton.styleFrom(
-        foregroundColor: AppColors.textSecondary,
+        foregroundColor: AppColors.textOnPrimary,
         padding: const EdgeInsets.symmetric(
-          horizontal: AppPadding.md,
-          vertical: AppPadding.sm,
+          horizontal: AppSpacing.md,
+          vertical: AppSpacing.sm,
         ),
       ),
     );
@@ -146,15 +143,15 @@ class _RegisterButton extends StatelessWidget {
     return OutlinedButton(
       onPressed: onTap ?? () {},
       style: OutlinedButton.styleFrom(
-        foregroundColor: AppColors.primary,
-        side: const BorderSide(color: AppColors.primary, width: 1.5),
+        foregroundColor: AppColors.textOnPrimary,
+        side: const BorderSide(color: AppColors.textOnPrimary, width: 1.5),
         padding: const EdgeInsets.symmetric(
-          horizontal: AppPadding.md,
-          vertical: AppPadding.sm,
+          horizontal: AppSpacing.md,
+          vertical: AppSpacing.sm,
         ),
         minimumSize: Size.zero,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppRadius.md),
+          borderRadius: BorderRadius.circular(AppBorderRadius.md),
         ),
       ),
       child: Text(
@@ -162,7 +159,7 @@ class _RegisterButton extends StatelessWidget {
         style: GoogleFonts.inter(
           fontSize: 14,
           fontWeight: FontWeight.w600,
-          color: AppColors.primary,
+          color: AppColors.textOnPrimary,
         ),
       ),
     );
@@ -178,15 +175,15 @@ class _LoginButton extends StatelessWidget {
     return OutlinedButton(
       onPressed: onTap ?? () {},
       style: OutlinedButton.styleFrom(
-        foregroundColor: AppColors.primary,
-        side: const BorderSide(color: AppColors.primary, width: 1.5),
+        foregroundColor: AppColors.textOnPrimary,
+        side: const BorderSide(color: AppColors.textOnPrimary, width: 1.5),
         padding: const EdgeInsets.symmetric(
-          horizontal: AppPadding.md,
-          vertical: AppPadding.sm,
+          horizontal: AppSpacing.md,
+          vertical: AppSpacing.sm,
         ),
         minimumSize: Size.zero,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppRadius.md),
+          borderRadius: BorderRadius.circular(AppBorderRadius.md),
         ),
       ),
       child: Text(
@@ -194,7 +191,7 @@ class _LoginButton extends StatelessWidget {
         style: GoogleFonts.inter(
           fontSize: 14,
           fontWeight: FontWeight.w600,
-          color: AppColors.primary,
+          color: AppColors.textOnPrimary,
         ),
       ),
     );

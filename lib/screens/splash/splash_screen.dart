@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../core/routes/app_router.dart';
-import '../../core/theme/app_theme.dart';
+import '../../routes/app_routes.dart';
+import '../../theme/theme.dart';
 import '../../widgets/logo_widget.dart';
 
 /// Splash screen shown at app start.
@@ -76,7 +76,7 @@ class _SplashScreenState extends State<SplashScreen>
                   height: 36,
                   child: CircularProgressIndicator(
                     strokeWidth: 3,
-                    color: AppColors.primary.withOpacity(0.6),
+                    color: AppColors.primary.withValues(alpha: 0.6),
                   ),
                 ),
               ],

@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'core/routes/app_router.dart';
-import 'core/theme/app_theme.dart';
+// ── New canonical locations ────────────────────────────────────────────────────
+import 'routes/app_router.dart';
+import 'theme/theme.dart';
 
 /// [AppShell] is the root widget of the application.
 ///
-/// It wires together:
-///   • [ProviderScope] (Riverpod)
-///   • [MaterialApp.router] with GoRouter
-///   • [AppTheme.lightTheme]
+/// Wires together:
+///   • [ProviderScope] (Riverpod — declared in main.dart)
+///   • [MaterialApp.router] driven by GoRouter via [appRouterProvider]
+///   • [AppTheme.light] — fully tokenised Material 3 theme
 class AppShell extends ConsumerWidget {
   const AppShell({super.key});
 
@@ -20,9 +21,11 @@ class AppShell extends ConsumerWidget {
     return MaterialApp.router(
       title: 'Naiyo24 Business Tool',
       debugShowCheckedModeBanner: false,
-      theme: AppTheme.lightTheme,
 
-      // GoRouter integration
+      // ── Theme ──────────────────────────────────────────────────────────────
+      theme: AppTheme.light,
+
+      // ── GoRouter ───────────────────────────────────────────────────────────
       routerConfig: router,
     );
   }

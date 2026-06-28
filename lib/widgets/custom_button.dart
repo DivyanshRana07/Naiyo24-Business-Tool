@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import '../core/theme/app_theme.dart';
+import '../theme/theme.dart';
 
 /// A styled primary / outlined button.
 class CustomButton extends StatelessWidget {
@@ -14,7 +14,7 @@ class CustomButton extends StatelessWidget {
     this.icon,
     this.backgroundColor,
     this.foregroundColor,
-    this.height = AppSizing.buttonHeight,
+    this.height = AppSpacing.buttonHeight,
   });
 
   final String label;
@@ -68,7 +68,7 @@ class CustomButton extends StatelessWidget {
               width: 1.5,
             ),
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(AppRadius.md),
+              borderRadius: BorderRadius.circular(AppBorderRadius.button),
             ),
           ),
           child: child,
@@ -85,7 +85,7 @@ class CustomButton extends StatelessWidget {
           backgroundColor: backgroundColor ?? AppColors.primary,
           foregroundColor: foregroundColor ?? Colors.white,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppRadius.md),
+            borderRadius: BorderRadius.circular(AppBorderRadius.button),
           ),
           elevation: 0,
         ),

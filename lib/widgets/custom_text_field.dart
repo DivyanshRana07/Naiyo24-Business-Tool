@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import '../core/theme/app_theme.dart';
+import '../theme/theme.dart';
 
 /// A styled text field that wraps [TextFormField] with consistent theming.
 class CustomTextField extends StatelessWidget {
@@ -61,7 +61,7 @@ class CustomTextField extends StatelessWidget {
         labelText: labelText,
         prefixIcon: prefixIcon,
         suffixIcon: suffixIcon,
-        constraints: const BoxConstraints(minHeight: AppSizing.inputHeight),
+        constraints: const BoxConstraints(minHeight: AppSpacing.inputHeight),
       ),
     );
   }

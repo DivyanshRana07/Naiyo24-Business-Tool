@@ -6,10 +6,14 @@ part of 'auth_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$authHash() => r'authProviderGeneratedHash';
+String _$authHash() => r'8edfd09b298028cbea78006143daec1affa1f830';
 
 /// Re-exports [authNotifierProvider] under the alias [authProvider] so that
 /// the rest of the app uses a consistent naming convention.
+///
+/// Usage:
+///   final authState = ref.watch(authProvider);
+///   final notifier  = ref.read(authProvider.notifier);
 ///
 /// Copied from [auth].
 @ProviderFor(auth)

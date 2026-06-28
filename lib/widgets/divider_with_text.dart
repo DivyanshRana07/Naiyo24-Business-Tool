@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import '../core/theme/app_theme.dart';
+import '../theme/theme.dart';
 
 /// A horizontal divider with centred label text – e.g. "OR".
 class DividerWithText extends StatelessWidget {
@@ -17,7 +17,7 @@ class DividerWithText extends StatelessWidget {
           child: Divider(color: AppColors.divider, thickness: 1),
         ),
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: AppPadding.md),
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
           child: Text(
             text,
             style: GoogleFonts.inter(

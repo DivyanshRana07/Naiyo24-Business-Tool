@@ -28,6 +28,11 @@
   <!-- Favicon -->
   <link rel="icon" type="image/png" href="favicon.png"/>
 
+  <!-- Preload Critical Assets -->
+  <link rel="preload" href="assets/images/naiyo24_logo.png" as="image" onerror="this.style.display='none'">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
   <title>Naiyo24 Business Tool</title>
   <link rel="manifest" href="manifest.json">
 
@@ -74,12 +79,27 @@
     <div class="spinner"></div>
   </div>
 
+  <script src="flutter.js" defer></script>
   <script>
     window.addEventListener('flutter-first-frame', function () {
       var loadingEl = document.getElementById('loading');
       if (loadingEl) loadingEl.style.display = 'none';
     });
+
+    window.addEventListener('load', function(ev) {
+      _flutter.loader.loadEntrypoint({
+        serviceWorker: {
+          serviceWorkerVersion: null,
+        },
+        onEntrypointLoaded: function(engineInitializer) {
+          engineInitializer.initializeEngine({
+            renderer: "canvaskit"
+          }).then(function(appRunner) {
+            appRunner.runApp();
+          });
+        }
+      });
+    });
   </script>
-  <script src="flutter_bootstrap.js" async></script>
 </body>
 </html>

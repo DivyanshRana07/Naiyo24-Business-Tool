@@ -6,9 +6,13 @@ part of 'auth_notifier.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$authNotifierHash() => r'authNotifierGeneratedHash';
+String _$authNotifierHash() => r'88fe1379c71c49f5c6e42ef8e6ba654a9951a5a9';
 
-/// See also [AuthNotifier].
+/// [AuthNotifier] manages authentication state locally.
+///
+/// Architecture: UI → Provider → Notifier → State Update
+///
+/// Copied from [AuthNotifier].
 @ProviderFor(AuthNotifier)
 final authNotifierProvider =
     AutoDisposeNotifierProvider<AuthNotifier, AuthState>.internal(

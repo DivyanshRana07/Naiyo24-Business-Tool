@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:google_fonts/google_fonts.dart';
 
-import '../../core/routes/app_router.dart';
-import '../../core/theme/app_theme.dart';
+import '../../routes/app_routes.dart';
+import '../../theme/theme.dart';
 import '../../widgets/auth_header.dart';
 import '../../widgets/custom_button.dart';
 import '../../widgets/custom_text_field.dart';
@@ -119,42 +118,38 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
         children: [
           Column(
             children: [
-              // ── Top Navigation Bar ────────────────────────────────
               AuthHeader(
                 showLogin: true,
                 onLoginTap: () => context.go(AppRoutes.login),
               ),
-
-              // ── Scrollable Content ────────────────────────────────
               Expanded(
                 child: LayoutBuilder(
                   builder: (context, constraints) {
                     return SingleChildScrollView(
+                      physics: const BouncingScrollPhysics(),
                       child: ConstrainedBox(
                         constraints: BoxConstraints(
                           minHeight: constraints.maxHeight,
                         ),
-                        child: IntrinsicHeight(
-                          child: _SignupBody(
-                            formKey: _formKey,
-                            fullNameController: _fullNameController,
-                            emailController: _emailController,
-                            phoneController: _phoneController,
-                            passwordController: _passwordController,
-                            isLoading: _isLoading,
-                            agreeToTerms: _agreeToTerms,
-                            selectedCountry: _selectedCountry,
-                            selectedPhoneCode: _selectedPhoneCode,
-                            countries: _countries,
-                            phoneCodes: _phoneCodes,
-                            onCountryChanged: (v) =>
-                                setState(() => _selectedCountry = v),
-                            onPhoneCodeChanged: (v) =>
-                                setState(() => _selectedPhoneCode = v ?? '+91'),
-                            onTermsChanged: (v) =>
-                                setState(() => _agreeToTerms = v ?? false),
-                            onSignup: _handleSignup,
-                          ),
+                        child: _SignupBody(
+                          formKey: _formKey,
+                          fullNameController: _fullNameController,
+                          emailController: _emailController,
+                          phoneController: _phoneController,
+                          passwordController: _passwordController,
+                          isLoading: _isLoading,
+                          agreeToTerms: _agreeToTerms,
+                          selectedCountry: _selectedCountry,
+                          selectedPhoneCode: _selectedPhoneCode,
+                          countries: _countries,
+                          phoneCodes: _phoneCodes,
+                          onCountryChanged: (v) =>
+                              setState(() => _selectedCountry = v),
+                          onPhoneCodeChanged: (v) =>
+                              setState(() => _selectedPhoneCode = v ?? '+91'),
+                          onTermsChanged: (v) =>
+                              setState(() => _agreeToTerms = v ?? false),
+                          onSignup: _handleSignup,
                         ),
                       ),
                     );
@@ -169,8 +164,6 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
     );
   }
 }
-
-// ─── Body widget ──────────────────────────────────────────────────────────────
 
 class _SignupBody extends StatelessWidget {
   const _SignupBody({
@@ -209,33 +202,30 @@ class _SignupBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final width = MediaQuery.of(context).size.width;
-
     return Padding(
-      padding: EdgeInsets.symmetric(
-        horizontal: width > 768 ? AppPadding.xl : AppPadding.md,
-        vertical: AppPadding.xl,
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.lg,
+        vertical: AppSpacing.xxl,
       ),
       child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          // Hero
           Text(
             'Create your account',
-            style: Theme.of(context).textTheme.headlineMedium,
+            style: AppTextStyles.displayMedium,
             textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: AppSpacing.sm),
           Text(
             'Join thousands of businesses on Naiyo24',
-            style: Theme.of(context).textTheme.bodyMedium,
+            style: AppTextStyles.bodyLarge,
             textAlign: TextAlign.center,
           ),
-          const SizedBox(height: AppPadding.xl),
+          const SizedBox(height: AppSpacing.xl),
 
-          // Signup Card
           Center(
             child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: AppSizing.signupCardWidth),
+              constraints: const BoxConstraints(maxWidth: AppSpacing.signupCardMaxWidth),
               child: _SignupCard(
                 formKey: formKey,
                 fullNameController: fullNameController,
@@ -255,11 +245,10 @@ class _SignupBody extends StatelessWidget {
               ),
             ),
           ),
-
-          const SizedBox(height: AppPadding.xl),
+          const SizedBox(height: AppSpacing.xxl),
           Text(
             '© 2024 Naiyo24 · All rights reserved',
-            style: GoogleFonts.inter(fontSize: 12, color: AppColors.textHint),
+            style: AppTextStyles.caption,
             textAlign: TextAlign.center,
           ),
         ],
@@ -267,8 +256,6 @@ class _SignupBody extends StatelessWidget {
     );
   }
 }
-
-// ─── Signup card ──────────────────────────────────────────────────────────────
 
 class _SignupCard extends StatelessWidget {
   const _SignupCard({
@@ -308,13 +295,13 @@ class _SignupCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(AppPadding.xl),
+      padding: const EdgeInsets.all(AppSpacing.xl),
       decoration: BoxDecoration(
         color: AppColors.surface,
-        borderRadius: BorderRadius.circular(AppRadius.xl),
+        borderRadius: BorderRadius.circular(AppBorderRadius.xl),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.06),
+            color: Colors.black.withValues(alpha: 0.04),
             blurRadius: 24,
             offset: const Offset(0, 8),
           ),
@@ -326,21 +313,18 @@ class _SignupCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // ── Google Signup ─────────────────────────────────────────
-            GoogleButton(label: 'Sign up with Google'),
-            const SizedBox(height: AppPadding.md),
+            const GoogleButton(label: 'Sign up with Google'),
+            const SizedBox(height: AppSpacing.md),
             const DividerWithText(),
-            const SizedBox(height: AppPadding.md),
+            const SizedBox(height: AppSpacing.md),
 
-            // ── Country ───────────────────────────────────────────────
             _CountryDropdown(
               value: selectedCountry,
               countries: countries,
               onChanged: onCountryChanged,
             ),
-            const SizedBox(height: AppPadding.md),
+            const SizedBox(height: AppSpacing.md),
 
-            // ── Full Name ─────────────────────────────────────────────
             CustomTextField(
               controller: fullNameController,
               hintText: 'John Doe',
@@ -348,7 +332,6 @@ class _SignupCard extends StatelessWidget {
               prefixIcon: const Icon(
                 Icons.person_outline_rounded,
                 size: 20,
-                color: AppColors.textSecondary,
               ),
               validator: (v) {
                 if (v == null || v.trim().isEmpty) return 'Name is required';
@@ -356,9 +339,8 @@ class _SignupCard extends StatelessWidget {
                 return null;
               },
             ),
-            const SizedBox(height: AppPadding.md),
+            const SizedBox(height: AppSpacing.md),
 
-            // ── Email ─────────────────────────────────────────────────
             CustomTextField(
               controller: emailController,
               hintText: 'john@example.com',
@@ -367,7 +349,6 @@ class _SignupCard extends StatelessWidget {
               prefixIcon: const Icon(
                 Icons.email_outlined,
                 size: 20,
-                color: AppColors.textSecondary,
               ),
               validator: (v) {
                 if (v == null || v.trim().isEmpty) return 'Email is required';
@@ -377,18 +358,16 @@ class _SignupCard extends StatelessWidget {
                 return null;
               },
             ),
-            const SizedBox(height: AppPadding.md),
+            const SizedBox(height: AppSpacing.md),
 
-            // ── Phone with country code ───────────────────────────────
             _PhoneField(
               phoneController: phoneController,
               selectedCode: selectedPhoneCode,
               phoneCodes: phoneCodes,
               onCodeChanged: onPhoneCodeChanged,
             ),
-            const SizedBox(height: AppPadding.md),
+            const SizedBox(height: AppSpacing.md),
 
-            // ── Password ──────────────────────────────────────────────
             PasswordField(
               controller: passwordController,
               hintText: 'Create a strong password',
@@ -399,41 +378,33 @@ class _SignupCard extends StatelessWidget {
                 return null;
               },
             ),
-            const SizedBox(height: AppPadding.md),
+            const SizedBox(height: AppSpacing.md),
 
-            // ── Terms checkbox ────────────────────────────────────────
             _TermsCheckbox(
               value: agreeToTerms,
               onChanged: onTermsChanged,
             ),
-            const SizedBox(height: AppPadding.lg),
+            const SizedBox(height: AppSpacing.lg),
 
-            // ── Create Account button ─────────────────────────────────
             CustomButton(
               label: 'Create Account',
               isLoading: isLoading,
               onPressed: onSignup,
             ),
-            const SizedBox(height: AppPadding.lg),
+            const SizedBox(height: AppSpacing.lg),
 
-            // ── Login link ────────────────────────────────────────────
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
                   'Already have an account? ',
-                  style: GoogleFonts.inter(
-                    fontSize: 13,
-                    color: AppColors.textSecondary,
-                  ),
+                  style: AppTextStyles.bodyMedium,
                 ),
                 GestureDetector(
                   onTap: () => context.go(AppRoutes.login),
                   child: Text(
                     'Login Here',
-                    style: GoogleFonts.inter(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w700,
+                    style: AppTextStyles.labelMedium.copyWith(
                       color: AppColors.primary,
                       decoration: TextDecoration.underline,
                       decorationColor: AppColors.primary,
@@ -449,8 +420,6 @@ class _SignupCard extends StatelessWidget {
   }
 }
 
-// ─── Sub-widgets ──────────────────────────────────────────────────────────────
-
 class _CountryDropdown extends StatelessWidget {
   const _CountryDropdown({
     required this.value,
@@ -465,42 +434,16 @@ class _CountryDropdown extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DropdownButtonFormField<String>(
-      value: value,
+      initialValue: value,
       hint: Text(
         'Select Country',
-        style: GoogleFonts.inter(
-          color: AppColors.textHint,
-          fontSize: 14,
-        ),
+        style: AppTextStyles.bodyMedium.copyWith(color: AppColors.textHint),
       ),
-      decoration: InputDecoration(
+      decoration: const InputDecoration(
         labelText: 'Country',
-        prefixIcon: const Icon(
+        prefixIcon: Icon(
           Icons.public_outlined,
           size: 20,
-          color: AppColors.textSecondary,
-        ),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppRadius.md),
-          borderSide: const BorderSide(color: AppColors.border, width: 1.5),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppRadius.md),
-          borderSide: const BorderSide(color: AppColors.border, width: 1.5),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppRadius.md),
-          borderSide: const BorderSide(color: AppColors.borderFocus, width: 2),
-        ),
-        errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppRadius.md),
-          borderSide: const BorderSide(color: AppColors.error, width: 1.5),
-        ),
-        filled: true,
-        fillColor: AppColors.surface,
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: AppPadding.md,
-          vertical: 14,
         ),
       ),
       isExpanded: true,
@@ -512,7 +455,7 @@ class _CountryDropdown extends StatelessWidget {
               value: c['name'],
               child: Text(
                 '${c['flag']}  ${c['name']}',
-                style: GoogleFonts.inter(fontSize: 14),
+                style: AppTextStyles.bodyMedium,
               ),
             ),
           )
@@ -539,38 +482,19 @@ class _PhoneField extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Phone country code dropdown
         SizedBox(
           width: 120,
           child: DropdownButtonFormField<String>(
-            value: selectedCode,
+            initialValue: selectedCode,
             isExpanded: true,
-            decoration: InputDecoration(
+            decoration: const InputDecoration(
               labelText: 'Code',
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(AppRadius.md),
-                borderSide: const BorderSide(color: AppColors.border, width: 1.5),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(AppRadius.md),
-                borderSide: const BorderSide(color: AppColors.border, width: 1.5),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(AppRadius.md),
-                borderSide:
-                    const BorderSide(color: AppColors.borderFocus, width: 2),
-              ),
-              filled: true,
-              fillColor: AppColors.surface,
-              contentPadding: const EdgeInsets.symmetric(
+              contentPadding: EdgeInsets.symmetric(
                 horizontal: 10,
                 vertical: 14,
               ),
             ),
-            style: GoogleFonts.inter(
-              fontSize: 13,
-              color: AppColors.textPrimary,
-            ),
+            style: AppTextStyles.bodyMedium.copyWith(color: AppColors.textPrimary),
             onChanged: onCodeChanged,
             items: phoneCodes
                 .map(
@@ -578,16 +502,14 @@ class _PhoneField extends StatelessWidget {
                     value: c['value'],
                     child: Text(
                       c['label']!,
-                      style: GoogleFonts.inter(fontSize: 13),
+                      style: AppTextStyles.bodyMedium,
                     ),
                   ),
                 )
                 .toList(),
           ),
         ),
-        const SizedBox(width: AppPadding.sm),
-
-        // Phone number
+        const SizedBox(width: AppSpacing.sm),
         Expanded(
           child: CustomTextField(
             controller: phoneController,
@@ -597,7 +519,6 @@ class _PhoneField extends StatelessWidget {
             prefixIcon: const Icon(
               Icons.phone_outlined,
               size: 20,
-              color: AppColors.textSecondary,
             ),
             validator: (v) {
               if (v == null || v.trim().isEmpty) return 'Phone is required';
@@ -632,17 +553,12 @@ class _TermsCheckbox extends StatelessWidget {
             onTap: () => onChanged(!value),
             child: RichText(
               text: TextSpan(
-                style: GoogleFonts.inter(
-                  fontSize: 13,
-                  color: AppColors.textSecondary,
-                ),
+                style: AppTextStyles.bodyMedium,
                 children: [
                   const TextSpan(text: 'I agree to the '),
                   TextSpan(
                     text: 'Terms & Conditions',
-                    style: GoogleFonts.inter(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
+                    style: AppTextStyles.labelMedium.copyWith(
                       color: AppColors.primary,
                       decoration: TextDecoration.underline,
                       decorationColor: AppColors.primary,
@@ -651,9 +567,7 @@ class _TermsCheckbox extends StatelessWidget {
                   const TextSpan(text: ' and '),
                   TextSpan(
                     text: 'Privacy Policy',
-                    style: GoogleFonts.inter(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
+                    style: AppTextStyles.labelMedium.copyWith(
                       color: AppColors.primary,
                       decoration: TextDecoration.underline,
                       decorationColor: AppColors.primary,

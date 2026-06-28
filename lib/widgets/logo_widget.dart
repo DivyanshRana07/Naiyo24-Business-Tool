@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import '../core/theme/app_theme.dart';
+import '../theme/theme.dart';
 
 /// Refrens-style purple logo widget.
 ///
@@ -11,13 +11,17 @@ class LogoWidget extends StatelessWidget {
     super.key,
     this.fontSize = 24,
     this.showTagline = false,
+    this.textColor,
   });
 
   final double fontSize;
   final bool showTagline;
+  final Color? textColor;
 
   @override
   Widget build(BuildContext context) {
+    final wordmarkColor = textColor ?? AppColors.textPrimary;
+    final primaryPartColor = textColor != null ? textColor! : AppColors.primary;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
@@ -30,11 +34,10 @@ class LogoWidget extends StatelessWidget {
               width: fontSize * 1.2,
               height: fontSize * 1.2,
               decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [AppColors.primary, AppColors.primaryDark],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
+                gradient: textColor != null
+                    ? null
+                    : AppGradients.primaryButton,
+                color: textColor != null ? Colors.white.withValues(alpha: 0.2) : null,
                 borderRadius: BorderRadius.circular(fontSize * 0.25),
               ),
               child: Center(
@@ -58,7 +61,7 @@ class LogoWidget extends StatelessWidget {
                     style: GoogleFonts.inter(
                       fontSize: fontSize,
                       fontWeight: FontWeight.w800,
-                      color: AppColors.primary,
+                      color: primaryPartColor,
                     ),
                   ),
                   TextSpan(
@@ -66,7 +69,7 @@ class LogoWidget extends StatelessWidget {
                     style: GoogleFonts.inter(
                       fontSize: fontSize,
                       fontWeight: FontWeight.w800,
-                      color: AppColors.textPrimary,
+                      color: wordmarkColor,
                     ),
                   ),
                 ],
@@ -81,7 +84,7 @@ class LogoWidget extends StatelessWidget {
             style: GoogleFonts.inter(
               fontSize: fontSize * 0.5,
               fontWeight: FontWeight.w500,
-              color: AppColors.textSecondary,
+              color: textColor ?? AppColors.textSecondary,
               letterSpacing: 0.5,
             ),
           ),

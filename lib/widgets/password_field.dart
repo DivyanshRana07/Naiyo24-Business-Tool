@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import '../core/theme/app_theme.dart';
+import '../theme/theme.dart';
 
 /// Visibility state provider for a particular PasswordField instance.
 /// Each field generates its own local provider using [StateProvider].
@@ -68,7 +68,7 @@ class _PasswordFieldState extends ConsumerState<PasswordField> {
           onPressed: () => setState(() => _obscure = !_obscure),
           tooltip: _obscure ? 'Show password' : 'Hide password',
         ),
-        constraints: const BoxConstraints(minHeight: AppSizing.inputHeight),
+        constraints: const BoxConstraints(minHeight: AppSpacing.inputHeight),
       ),
     );
   }
