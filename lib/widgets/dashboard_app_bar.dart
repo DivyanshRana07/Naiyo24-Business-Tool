@@ -56,7 +56,7 @@ class DashboardAppBar extends ConsumerWidget implements PreferredSizeWidget {
         child: LogoWidget(
           fontSize: 20,
           textColor: Colors.white,
-          secondaryTextColor: Colors.black,
+          secondaryTextColor: Colors.white,
         ),
       ),
       actions: [
