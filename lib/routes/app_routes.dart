@@ -28,6 +28,8 @@ abstract final class AppRoutes {
 
   // ── Creation Sub-Routes ───────────────────────────────────────────────────
   static const String newInvoice   = '/invoices/new';
+  static const String invoiceDetail = '/invoices/:id';
+  static const String returnItems  = '/invoices/:id/return';
   static const String newQuotation = '/quotations/new';
   static const String newExpense   = '/expenses/new';
   static const String newClient    = '/clients/new';
@@ -57,5 +59,12 @@ abstract final class AppRoutes {
   /// Returns `true` if [path] is an auth screen (login / signup).
   static bool isAuthScreen(String path) => _authRoutes.contains(path);
 
+  /// Builds the URL for a specific invoice detail page.
+  /// Usage: context.push(AppRoutes.invoiceDetailPath(invoice.id));
+  static String invoiceDetailPath(String id) => '/invoices/$id';
+
+  static String returnItemsPath(String id) => '/invoices/$id/return';
+
   AppRoutes._();
 }
+

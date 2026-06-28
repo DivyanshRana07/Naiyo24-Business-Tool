@@ -2,67 +2,56 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../models/invoice_model.dart';
+import '../../notifiers/auth_notifier.dart';
+import '../../notifiers/invoice_notifier.dart';
 import '../../routes/app_routes.dart';
 import '../../theme/theme.dart';
-import '../../notifiers/auth_notifier.dart';
 import '../../widgets/dashboard_app_bar.dart';
 import '../../widgets/side_navigation.dart';
 
-class InvoicesScreen extends ConsumerWidget {
+/// Invoice List screen — shows all saved invoices from [InvoiceNotifier].
+/// The "Create Invoice" button navigates to [AppRoutes.newInvoice].
+class InvoicesScreen extends ConsumerStatefulWidget {
   const InvoicesScreen({super.key});
 
-  static const List<Map<String, dynamic>> _invoicesData = [
-    {
-      'id': 'INV-2026-001',
-      'client': 'Acme Corp',
-      'date': '28 Jun 2026',
-      'amount': '₹12,500',
-      'status': 'Paid',
-      'statusColor': AppColors.success,
-    },
-    {
-      'id': 'INV-2026-002',
-      'client': 'TechSolutions Ltd',
-      'date': '25 Jun 2026',
-      'amount': '₹45,000',
-      'status': 'Paid',
-      'statusColor': AppColors.success,
-    },
-    {
-      'id': 'INV-2026-003',
-      'client': 'StartupXYZ',
-      'date': '20 Jun 2026',
-      'amount': '₹8,200',
-      'status': 'Overdue',
-      'statusColor': AppColors.error,
-    },
-    {
-      'id': 'INV-2026-004',
-      'client': 'GlobalRetail Inc',
-      'date': '18 Jun 2026',
-      'amount': '₹32,000',
-      'status': 'Pending',
-      'statusColor': Color(0xFFF59E0B),
-    },
-    {
-      'id': 'INV-2026-005',
-      'client': 'BetaCorp',
-      'date': '15 Jun 2026',
-      'amount': '₹18,500',
-      'status': 'Pending',
-      'statusColor': Color(0xFFF59E0B),
-    },
-  ];
+  @override
+  ConsumerState<InvoicesScreen> createState() => _InvoicesScreenState();
+}
 
-  void _logout(WidgetRef ref, BuildContext context) {
-    ref.read(authNotifierProvider.notifier).logout();
-    context.go(AppRoutes.login);
+class _InvoicesScreenState extends ConsumerState<InvoicesScreen> {
+  final _searchCtrl = TextEditingController();
+  InvoiceStatus? _filterStatus; // null = show all
+
+  @override
+  void initState() {
+    super.initState();
+    _searchCtrl.addListener(() => setState(() {}));
   }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  void dispose() {
+    _searchCtrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final authState = ref.watch(authNotifierProvider);
+    final allInvoices = ref.watch(invoiceNotifierProvider);
     final isDesktop = MediaQuery.of(context).size.width >= 900;
+
+    // ── Filter logic ──────────────────────────────────────────────────────────
+    final filtered = allInvoices.where((inv) {
+      final q = _searchCtrl.text.toLowerCase();
+      final matchesSearch = q.isEmpty ||
+          inv.invoiceNo.toLowerCase().contains(q) ||
+          inv.customerName.toLowerCase().contains(q);
+      final matchesStatus =
+          _filterStatus == null || inv.status == _filterStatus;
+      return matchesSearch && matchesStatus;
+    }).toList()
+      ..sort((a, b) => b.invoiceDate.compareTo(a.invoiceDate));
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -71,7 +60,10 @@ class InvoicesScreen extends ConsumerWidget {
           ? Drawer(
               child: SideNavigation(
                 email: authState.userEmail,
-                onLogout: () => _logout(ref, context),
+                onLogout: () {
+                  ref.read(authNotifierProvider.notifier).logout();
+                  context.go(AppRoutes.login);
+                },
                 currentRoute: AppRoutes.invoices,
               ),
             )
@@ -81,7 +73,10 @@ class InvoicesScreen extends ConsumerWidget {
           if (isDesktop)
             SideNavigation(
               email: authState.userEmail,
-              onLogout: () => _logout(ref, context),
+              onLogout: () {
+                ref.read(authNotifierProvider.notifier).logout();
+                context.go(AppRoutes.login);
+              },
               currentRoute: AppRoutes.invoices,
             ),
           Expanded(
@@ -90,44 +85,71 @@ class InvoicesScreen extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // ── Page header ─────────────────────────────────────────────
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
+                      const Icon(Icons.receipt_long_rounded,
+                          color: AppColors.primary, size: 28),
+                      const SizedBox(width: AppSpacing.sm),
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text('Invoices', style: AppTextStyles.h1),
-                          const SizedBox(height: AppSpacing.xs),
-                          Text('Manage and track your customer invoices.', style: AppTextStyles.bodyMedium),
+                          Text('Manage and track your customer invoices.',
+                              style: AppTextStyles.bodyMedium),
                         ],
                       ),
-                      ElevatedButton.icon(
-                        onPressed: () {},
-                        icon: const Icon(Icons.add_rounded, size: 18),
-                        label: const Text('Create Invoice'),
-                        style: ElevatedButton.styleFrom(
+                      const Spacer(),
+                      FilledButton.icon(
+                        onPressed: () => context.push(AppRoutes.newInvoice),
+                        style: FilledButton.styleFrom(
                           backgroundColor: AppColors.primary,
-                          foregroundColor: AppColors.textOnPrimary,
-                          elevation: 0,
                           padding: const EdgeInsets.symmetric(
-                            horizontal: AppSpacing.lg,
-                            vertical: AppSpacing.md,
-                          ),
+                              horizontal: 20, vertical: 14),
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(AppBorderRadius.button),
+                            borderRadius:
+                                BorderRadius.circular(AppBorderRadius.md),
                           ),
                         ),
+                        icon: const Icon(Icons.add_rounded,
+                            size: 18, color: Colors.white),
+                        label: Text('Create Invoice',
+                            style: AppTextStyles.labelLarge
+                                .copyWith(color: Colors.white)),
                       ),
                     ],
                   ),
                   const SizedBox(height: AppSpacing.xxl),
-                  
-                  // Filter bar
-                  _buildFilterBar(),
+
+                  // ── Summary chips ───────────────────────────────────────────
+                  _SummaryChips(invoices: allInvoices),
                   const SizedBox(height: AppSpacing.lg),
 
-                  // Invoices list / table
-                  _buildInvoicesTable(context),
+                  // ── Filter bar ──────────────────────────────────────────────
+                  _filterBar(),
+                  const SizedBox(height: AppSpacing.lg),
+
+                  // ── Invoice list ────────────────────────────────────────────
+                  filtered.isEmpty
+                      ? _EmptyState(
+                          hasFilter: _searchCtrl.text.isNotEmpty ||
+                              _filterStatus != null,
+                        )
+                      : _InvoiceDataTable(
+                          invoices: filtered,
+                          onDelete: _confirmDelete,
+                        ),
+
+                  // Footer count
+                  if (filtered.isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.only(top: AppSpacing.sm),
+                      child: Text(
+                        'Total Invoices: ${filtered.length}',
+                        style: AppTextStyles.caption
+                            .copyWith(color: AppColors.textSecondary),
+                      ),
+                    ),
                 ],
               ),
             ),
@@ -137,227 +159,312 @@ class InvoicesScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildFilterBar() {
+  Widget _filterBar() {
+    return Row(
+      children: [
+        Expanded(
+          child: TextField(
+            controller: _searchCtrl,
+            decoration: const InputDecoration(
+              hintText: 'Search by client name or invoice number...',
+              prefixIcon:
+                  Icon(Icons.search_rounded, color: AppColors.textSecondary),
+            ),
+          ),
+        ),
+        const SizedBox(width: AppSpacing.md),
+        // Status filter dropdown
+        DropdownButtonHideUnderline(
+          child: Container(
+            padding:
+                const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
+            decoration: BoxDecoration(
+              color: AppColors.surface,
+              borderRadius: BorderRadius.circular(AppBorderRadius.md),
+              border: Border.all(color: AppColors.border),
+            ),
+            child: DropdownButton<InvoiceStatus?>(
+              value: _filterStatus,
+              hint: const Text('All Status'),
+              items: const [
+                DropdownMenuItem(value: null, child: Text('All')),
+                DropdownMenuItem(
+                    value: InvoiceStatus.paid,
+                    child: Text('Paid',
+                        style: TextStyle(color: AppColors.success))),
+                DropdownMenuItem(
+                    value: InvoiceStatus.partial,
+                    child: Text('Partial',
+                        style: TextStyle(color: AppColors.warning))),
+                DropdownMenuItem(
+                    value: InvoiceStatus.due,
+                    child: Text('Due',
+                        style: TextStyle(color: AppColors.error))),
+              ],
+              onChanged: (v) => setState(() => _filterStatus = v),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  void _confirmDelete(InvoiceModel inv) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Delete Invoice'),
+        content: Text(
+            'Delete ${inv.invoiceNo} for ${inv.customerName}? This action cannot be undone.'),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Cancel')),
+          FilledButton(
+            style:
+                FilledButton.styleFrom(backgroundColor: AppColors.error),
+            onPressed: () {
+              ref
+                  .read(invoiceNotifierProvider.notifier)
+                  .deleteInvoice(inv.id);
+              Navigator.pop(ctx);
+            },
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ─── Summary Chips ────────────────────────────────────────────────────────────
+
+class _SummaryChips extends StatelessWidget {
+  const _SummaryChips({required this.invoices});
+  final List<InvoiceModel> invoices;
+
+  @override
+  Widget build(BuildContext context) {
+    final total = invoices.fold(0.0, (s, i) => s + i.grandTotal);
+    final paid = invoices
+        .where((i) => i.status == InvoiceStatus.paid)
+        .length;
+    final due = invoices
+        .where((i) => i.status == InvoiceStatus.due)
+        .fold(0.0, (s, i) => s + i.dueAmount);
+
+    return Wrap(
+      spacing: AppSpacing.md,
+      runSpacing: AppSpacing.sm,
+      children: [
+        _chip('Total Invoiced', '₹${total.toStringAsFixed(0)}',
+            AppColors.primary, Icons.receipt_rounded),
+        _chip('Paid Invoices', '$paid',
+            AppColors.success, Icons.check_circle_rounded),
+        _chip('Total Due', '₹${due.toStringAsFixed(0)}',
+            AppColors.error, Icons.warning_rounded),
+      ],
+    );
+  }
+
+  Widget _chip(
+      String label, String value, Color color, IconData icon) {
     return Container(
-      padding: const EdgeInsets.all(AppSpacing.md),
+      padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.md, vertical: AppSpacing.sm),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.07),
+        borderRadius: BorderRadius.circular(AppBorderRadius.full),
+        border: Border.all(color: color.withValues(alpha: 0.2)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 16, color: color),
+          const SizedBox(width: 6),
+          Text('$label: ',
+              style: AppTextStyles.caption
+                  .copyWith(color: AppColors.textSecondary)),
+          Text(value,
+              style: AppTextStyles.caption.copyWith(
+                  color: color, fontWeight: FontWeight.w700)),
+        ],
+      ),
+    );
+  }
+}
+
+// ─── Invoice Data Table ───────────────────────────────────────────────────────
+
+class _InvoiceDataTable extends StatelessWidget {
+  const _InvoiceDataTable({
+    required this.invoices,
+    required this.onDelete,
+  });
+
+  final List<InvoiceModel> invoices;
+  final void Function(InvoiceModel) onDelete;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(AppBorderRadius.lg),
         border: Border.all(color: AppColors.border),
       ),
-      child: Row(
-        children: [
-          Expanded(
-            child: TextField(
-              decoration: InputDecoration(
-                hintText: 'Search by client name or invoice number...',
-                prefixIcon: const Icon(Icons.search_rounded, size: 20),
-                contentPadding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(AppBorderRadius.md),
-                  borderSide: const BorderSide(color: AppColors.border),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(AppBorderRadius.md),
-                  borderSide: const BorderSide(color: AppColors.border),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(AppBorderRadius.md),
-                  borderSide: const BorderSide(color: AppColors.primary),
-                ),
-              ),
-            ),
+      clipBehavior: Clip.hardEdge,
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: DataTable(
+          headingRowColor:
+              WidgetStateProperty.all(AppColors.surfaceVariant),
+          dataRowMinHeight: 60,
+          dataRowMaxHeight: 60,
+          columnSpacing: 20,
+          headingTextStyle: AppTextStyles.caption.copyWith(
+            fontWeight: FontWeight.w700,
+            color: AppColors.textSecondary,
+            letterSpacing: 0.5,
           ),
-          const SizedBox(width: AppSpacing.md),
-          OutlinedButton.icon(
-            onPressed: () {},
-            icon: const Icon(Icons.filter_list_rounded, size: 18),
-            label: const Text('Filter'),
-            style: OutlinedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppSpacing.lg,
-                vertical: AppSpacing.md,
-              ),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(AppBorderRadius.button),
-              ),
-              side: const BorderSide(color: AppColors.border),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildInvoicesTable(BuildContext context) {
-    final isDesktop = MediaQuery.of(context).size.width >= 700;
-
-    if (!isDesktop) {
-      return ListView.separated(
-        shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics(),
-        itemCount: _invoicesData.length,
-        separatorBuilder: (_, __) => const SizedBox(height: AppSpacing.md),
-        itemBuilder: (_, i) {
-          final data = _invoicesData[i];
-          return Container(
-            padding: const EdgeInsets.all(AppSpacing.lg),
-            decoration: BoxDecoration(
-              color: AppColors.surface,
-              borderRadius: BorderRadius.circular(AppBorderRadius.lg),
-              border: Border.all(color: AppColors.border),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(data['id'] as String, style: AppTextStyles.labelLarge),
-                    _buildStatusBadge(data['status'] as String, data['statusColor'] as Color),
-                  ],
-                ),
-                const SizedBox(height: AppSpacing.sm),
-                Text(data['client'] as String, style: AppTextStyles.h3),
-                const SizedBox(height: AppSpacing.xs),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(data['date'] as String, style: AppTextStyles.bodyMedium),
-                    Text(data['amount'] as String, style: AppTextStyles.labelLarge),
-                  ],
-                ),
-                const SizedBox(height: AppSpacing.md),
-                const Divider(height: 1, color: AppColors.border),
-                const SizedBox(height: AppSpacing.sm),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    TextButton(onPressed: () {}, child: const Text('Edit')),
-                    const SizedBox(width: AppSpacing.sm),
-                    TextButton(onPressed: () {}, child: const Text('Send')),
-                  ],
-                ),
-              ],
-            ),
-          );
-        },
-      );
-    }
-
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(AppBorderRadius.xl),
-        border: Border.all(color: AppColors.border),
-      ),
-      child: Table(
-        columnWidths: const {
-          0: FlexColumnWidth(1.2),
-          1: FlexColumnWidth(2),
-          2: FlexColumnWidth(1.2),
-          3: FlexColumnWidth(1.2),
-          4: FlexColumnWidth(1.2),
-          5: FlexColumnWidth(1.5),
-        },
-        children: [
-          // Table Header
-          TableRow(
-            decoration: const BoxDecoration(
-              color: AppColors.background,
-              borderRadius: BorderRadius.only(
-                topLeft: Radius.circular(AppBorderRadius.xl),
-                topRight: Radius.circular(AppBorderRadius.xl),
-              ),
-            ),
-            children: [
-              _buildHeaderCell('INVOICE ID'),
-              _buildHeaderCell('CLIENT'),
-              _buildHeaderCell('DATE'),
-              _buildHeaderCell('AMOUNT'),
-              _buildHeaderCell('STATUS'),
-              _buildHeaderCell('ACTIONS', alignRight: true),
-            ],
-          ),
-          // Table Rows
-          ..._invoicesData.map((data) {
-            return TableRow(
-              children: [
-                _buildCell(data['id'] as String, isBold: true),
-                _buildCell(data['client'] as String),
-                _buildCell(data['date'] as String),
-                _buildCell(data['amount'] as String),
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: AppSpacing.md, horizontal: AppSpacing.lg),
-                  child: Align(
-                    alignment: Alignment.centerLeft,
-                    child: _buildStatusBadge(data['status'] as String, data['statusColor'] as Color),
+          columns: const [
+            DataColumn(label: Text('INVOICE NO.')),
+            DataColumn(label: Text('DATE')),
+            DataColumn(label: Text('CUSTOMER')),
+            DataColumn(label: Text('TOTAL'), numeric: true),
+            DataColumn(label: Text('PAID'), numeric: true),
+            DataColumn(label: Text('DUE'), numeric: true),
+            DataColumn(label: Text('STATUS')),
+            DataColumn(label: Text('ACTION')),
+          ],
+          rows: invoices.map((inv) {
+            return DataRow(cells: [
+              DataCell(Text(inv.invoiceNo,
+                  style: AppTextStyles.caption.copyWith(
+                      color: AppColors.primary,
+                      fontWeight: FontWeight.w600))),
+              DataCell(Text(
+                '${inv.invoiceDate.day.toString().padLeft(2, '0')}/'
+                '${inv.invoiceDate.month.toString().padLeft(2, '0')}/'
+                '${inv.invoiceDate.year}',
+                style: AppTextStyles.caption,
+              )),
+              DataCell(Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(inv.customerName,
+                      style: AppTextStyles.bodyMedium
+                          .copyWith(fontWeight: FontWeight.w600)),
+                  Text(inv.customerMobile,
+                      style: AppTextStyles.caption.copyWith(
+                          color: AppColors.textSecondary)),
+                ],
+              )),
+              DataCell(Text('₹${inv.grandTotal.toStringAsFixed(2)}',
+                  style: AppTextStyles.bodyMedium
+                      .copyWith(fontWeight: FontWeight.w700))),
+              DataCell(Text('₹${inv.paidAmount.toStringAsFixed(2)}',
+                  style: AppTextStyles.bodyMedium
+                      .copyWith(color: AppColors.success))),
+              DataCell(Text('₹${inv.dueAmount.toStringAsFixed(2)}',
+                  style: AppTextStyles.bodyMedium.copyWith(
+                      color: inv.dueAmount > 0
+                          ? AppColors.error
+                          : AppColors.textSecondary))),
+              DataCell(_InvoiceStatusBadge(status: inv.status)),
+              DataCell(Row(children: [
+                Tooltip(
+                  message: 'View',
+                  child: InkWell(
+                    onTap: () => context.push(AppRoutes.invoiceDetailPath(inv.id)),
+                    borderRadius: BorderRadius.circular(AppBorderRadius.sm),
+                    child: const Padding(
+                      padding: EdgeInsets.all(4),
+                      child: Icon(Icons.visibility_rounded,
+                          size: 18, color: AppColors.primary),
+                    ),
                   ),
                 ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm, horizontal: AppSpacing.lg),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.edit_outlined, size: 18),
-                        onPressed: () {},
-                        tooltip: 'Edit',
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.send_rounded, size: 18),
-                        onPressed: () {},
-                        tooltip: 'Send Invoice',
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.delete_outline_rounded, size: 18, color: AppColors.error),
-                        onPressed: () {},
-                        tooltip: 'Delete',
-                      ),
-                    ],
+                const SizedBox(width: AppSpacing.sm),
+                Tooltip(
+                  message: 'Delete',
+                  child: InkWell(
+                    onTap: () => onDelete(inv),
+                    borderRadius:
+                        BorderRadius.circular(AppBorderRadius.sm),
+                    child: const Padding(
+                      padding: EdgeInsets.all(4),
+                      child: Icon(Icons.delete_rounded,
+                          size: 18, color: AppColors.error),
+                    ),
                   ),
                 ),
-              ],
-            );
-          }),
-        ],
-      ),
-    );
-  }
+              ])),
 
-  Widget _buildHeaderCell(String text, {bool alignRight = false}) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: AppSpacing.md, horizontal: AppSpacing.lg),
-      child: Text(
-        text,
-        style: AppTextStyles.labelLarge.copyWith(color: AppColors.textSecondary),
-        textAlign: alignRight ? TextAlign.right : TextAlign.left,
-      ),
-    );
-  }
-
-  Widget _buildCell(String text, {bool isBold = false}) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: AppSpacing.md, horizontal: AppSpacing.lg),
-      child: Text(
-        text,
-        style: AppTextStyles.bodyMedium.copyWith(
-          fontWeight: isBold ? FontWeight.w600 : FontWeight.w400,
+            ]);
+          }).toList(),
         ),
       ),
     );
   }
+}
 
-  Widget _buildStatusBadge(String label, Color color) {
+// ─── Invoice Status Badge ─────────────────────────────────────────────────────
+
+class _InvoiceStatusBadge extends StatelessWidget {
+  const _InvoiceStatusBadge({required this.status});
+  final InvoiceStatus status;
+
+  @override
+  Widget build(BuildContext context) {
+    final (label, color) = switch (status) {
+      InvoiceStatus.paid => ('Paid', AppColors.success),
+      InvoiceStatus.partial => ('Partial', AppColors.warning),
+      InvoiceStatus.due => ('Due', AppColors.error),
+    };
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.xs),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(AppBorderRadius.sm),
+        color: color.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(AppBorderRadius.full),
       ),
       child: Text(
         label,
-        style: AppTextStyles.labelMedium.copyWith(color: color, fontWeight: FontWeight.w600),
+        style: AppTextStyles.caption
+            .copyWith(color: color, fontWeight: FontWeight.w700),
+      ),
+    );
+  }
+}
+
+// ─── Empty State ──────────────────────────────────────────────────────────────
+
+class _EmptyState extends StatelessWidget {
+  const _EmptyState({required this.hasFilter});
+  final bool hasFilter;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(AppSpacing.xxl),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.receipt_long_outlined,
+                size: 72, color: AppColors.textHint),
+            const SizedBox(height: AppSpacing.lg),
+            Text(
+              hasFilter
+                  ? 'No invoices matched your search.'
+                  : 'No invoices yet.\nTap "Create Invoice" to get started.',
+              textAlign: TextAlign.center,
+              style: AppTextStyles.bodyMedium.copyWith(
+                  color: AppColors.textSecondary, height: 1.6),
+            ),
+          ],
+        ),
       ),
     );
   }

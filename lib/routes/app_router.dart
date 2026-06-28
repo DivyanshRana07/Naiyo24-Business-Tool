@@ -11,6 +11,11 @@ import '../screens/dashboard/dashboard_screen.dart' deferred as dashboard;
 import '../screens/settings/settings_screen.dart' deferred as settings;
 import '../screens/invoices/invoices_screen.dart' deferred as invoices;
 import '../screens/quotations/quotations_screen.dart' deferred as quotations;
+import '../screens/products/products_screen.dart' deferred as products;
+import '../screens/clients/clients_screen.dart' deferred as clients;
+import '../screens/invoices/create_invoice_screen.dart' deferred as create_invoice_screen;
+import '../screens/invoices/invoice_detail_screen.dart' deferred as invoice_detail_screen;
+import '../screens/invoices/return_items_screen.dart' deferred as return_items_screen;
 import 'app_routes.dart';
 
 part 'app_router.g.dart';
@@ -182,7 +187,10 @@ GoRouter appRouter(Ref ref) {
         name: 'clients',
         pageBuilder: (context, state) => CustomTransitionPage(
           key: state.pageKey,
-          child: const _PlaceholderScreen(title: 'Clients'),
+          child: DeferredWidget(
+            load: clients.loadLibrary,
+            builder: (context) => clients.ClientsScreen(),
+          ),
           transitionsBuilder: _fadeTransition,
         ),
       ),
@@ -191,7 +199,10 @@ GoRouter appRouter(Ref ref) {
         name: 'products',
         pageBuilder: (context, state) => CustomTransitionPage(
           key: state.pageKey,
-          child: const _PlaceholderScreen(title: 'Products'),
+          child: DeferredWidget(
+            load: products.loadLibrary,
+            builder: (context) => products.ProductsScreen(),
+          ),
           transitionsBuilder: _fadeTransition,
         ),
       ),
@@ -221,9 +232,46 @@ GoRouter appRouter(Ref ref) {
         name: 'new-invoice',
         pageBuilder: (context, state) => CustomTransitionPage(
           key: state.pageKey,
-          child: const _PlaceholderScreen(title: 'New Invoice'),
+          child: DeferredWidget(
+            load: create_invoice_screen.loadLibrary,
+            builder: (context) => create_invoice_screen.CreateInvoiceScreen(),
+          ),
           transitionsBuilder: _fadeTransition,
         ),
+      ),
+      GoRoute(
+        path: AppRoutes.invoiceDetail,
+        name: 'invoice-detail',
+        pageBuilder: (context, state) {
+          final invoiceId = state.pathParameters['id'] ?? '';
+          return CustomTransitionPage(
+            key: state.pageKey,
+            child: DeferredWidget(
+              load: invoice_detail_screen.loadLibrary,
+              builder: (context) =>
+                  invoice_detail_screen.InvoiceDetailScreen(
+                      invoiceId: invoiceId),
+            ),
+            transitionsBuilder: _fadeTransition,
+          );
+        },
+      ),
+      GoRoute(
+        path: AppRoutes.returnItems,
+        name: 'return-items',
+        pageBuilder: (context, state) {
+          final invoiceId = state.pathParameters['id'] ?? '';
+          return CustomTransitionPage(
+            key: state.pageKey,
+            child: DeferredWidget(
+              load: return_items_screen.loadLibrary,
+              builder: (context) =>
+                  return_items_screen.ReturnItemsScreen(
+                      invoiceId: invoiceId),
+            ),
+            transitionsBuilder: _fadeTransition,
+          );
+        },
       ),
       GoRoute(
         path: AppRoutes.newQuotation,
@@ -275,7 +323,10 @@ GoRouter appRouter(Ref ref) {
         name: 'new-client',
         pageBuilder: (context, state) => CustomTransitionPage(
           key: state.pageKey,
-          child: const _PlaceholderScreen(title: 'New Client'),
+          child: DeferredWidget(
+            load: clients.loadLibrary,
+            builder: (context) => clients.ClientsScreen(showAddDialog: true),
+          ),
           transitionsBuilder: _fadeTransition,
         ),
       ),
