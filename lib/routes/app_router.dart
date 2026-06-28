@@ -235,6 +235,24 @@ GoRouter appRouter(Ref ref) {
         ),
       ),
       GoRoute(
+        path: AppRoutes.newProduct,
+        name: 'new-product',
+        pageBuilder: (context, state) => CustomTransitionPage(
+          key: state.pageKey,
+          child: const _PlaceholderScreen(title: 'New Product'),
+          transitionsBuilder: _fadeTransition,
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.sendReminder,
+        name: 'send-reminder',
+        pageBuilder: (context, state) => CustomTransitionPage(
+          key: state.pageKey,
+          child: const _PlaceholderScreen(title: 'Send Reminder'),
+          transitionsBuilder: _fadeTransition,
+        ),
+      ),
+      GoRoute(
         path: AppRoutes.expenses,
         name: 'expenses',
         pageBuilder: (context, state) => CustomTransitionPage(

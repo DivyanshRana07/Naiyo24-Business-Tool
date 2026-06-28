@@ -162,12 +162,12 @@ class _StatsGrid extends StatelessWidget {
 
 class _QuickActionsSection extends StatelessWidget {
   static const List<Map<String, dynamic>> _actions = [
-    {'icon': Icons.receipt_long_rounded, 'label': 'New Invoice', 'color': AppColors.primary},
-    {'icon': Icons.description_outlined, 'label': 'New Quotation', 'color': Color(0xFF06B6D4)},
-    {'icon': Icons.person_add_rounded, 'label': 'Add Client', 'color': Color(0xFF22C55E)},
-    {'icon': Icons.inventory_2_outlined, 'label': 'Add Product', 'color': Color(0xFFF59E0B)},
-    {'icon': Icons.bar_chart_rounded, 'label': 'View Report', 'color': Color(0xFF8B5CF6)},
-    {'icon': Icons.send_rounded, 'label': 'Send Reminder', 'color': Color(0xFFEF4444)},
+    {'icon': Icons.receipt_long_rounded, 'label': 'New Invoice', 'color': AppColors.primary, 'route': AppRoutes.newInvoice},
+    {'icon': Icons.description_outlined, 'label': 'New Quotation', 'color': Color(0xFF06B6D4), 'route': AppRoutes.newQuotation},
+    {'icon': Icons.person_add_rounded, 'label': 'Add Client', 'color': Color(0xFF22C55E), 'route': AppRoutes.newClient},
+    {'icon': Icons.inventory_2_outlined, 'label': 'Add Product', 'color': Color(0xFFF59E0B), 'route': AppRoutes.newProduct},
+    {'icon': Icons.bar_chart_rounded, 'label': 'View Report', 'color': Color(0xFF8B5CF6), 'route': AppRoutes.reports},
+    {'icon': Icons.send_rounded, 'label': 'Send Reminder', 'color': Color(0xFFEF4444), 'route': AppRoutes.sendReminder},
   ];
 
   @override
@@ -195,7 +195,11 @@ class _QuickActionsSection extends StatelessWidget {
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(AppBorderRadius.full),
                     ),
-                    onPressed: () {},
+                    onPressed: () {
+                      if (a['route'] != null) {
+                        context.push(a['route'] as String);
+                      }
+                    },
                   ))
               .toList(),
         ),

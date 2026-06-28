@@ -32,6 +32,8 @@ abstract final class AppRoutes {
   static const String newExpense   = '/expenses/new';
   static const String newClient    = '/clients/new';
   static const String newLead      = '/leads/new';
+  static const String newProduct   = '/products/new';
+  static const String sendReminder = '/reminders/new';
   static const String expenses     = '/expenses';
   static const String leads        = '/leads';
 
