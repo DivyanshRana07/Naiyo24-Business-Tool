@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../routes/app_routes.dart';
 import '../../theme/theme.dart';
 import '../../notifiers/auth_notifier.dart';
+import '../products/widgets/product_form_dialog.dart';
 import '../../widgets/dashboard_app_bar.dart';
 import '../../widgets/side_navigation.dart';
 import '../../widgets/welcome_hero.dart';
@@ -196,7 +197,12 @@ class _QuickActionsSection extends StatelessWidget {
                       borderRadius: BorderRadius.circular(AppBorderRadius.full),
                     ),
                     onPressed: () {
-                      if (a['route'] != null) {
+                      if (a['label'] == 'Add Product') {
+                        showDialog(
+                          context: context,
+                          builder: (_) => const ProductFormDialog(),
+                        );
+                      } else if (a['route'] != null) {
                         context.push(a['route'] as String);
                       }
                     },

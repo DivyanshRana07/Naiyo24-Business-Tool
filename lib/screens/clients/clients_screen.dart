@@ -98,7 +98,7 @@ class _ClientsScreenState extends ConsumerState<ClientsScreen> {
                         ),
                         icon: const Icon(Icons.add,
                             size: 18, color: Colors.white),
-                        label: Text('+ Add New Client',
+                        label: Text('Add New Client',
                             style: AppTextStyles.labelLarge
                                 .copyWith(color: Colors.white)),
                       ),
@@ -123,7 +123,7 @@ class _ClientsScreenState extends ConsumerState<ClientsScreen> {
                     child: customers.isEmpty
                         ? _EmptyState(
                             message: query.isEmpty
-                                ? 'No clients yet.\nTap "+ Add New Client" to add your first customer.'
+                                ? 'No clients yet.\nTap "Add New Client" to add your first customer.'
                                 : 'No clients matched "$query".',
                           )
                         : _CustomerDataTable(
