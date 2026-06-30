@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-
 import '../../routes/app_routes.dart';
+import '../../notifiers/auth_notifier.dart';
 import '../../theme/theme.dart';
 import '../../widgets/auth_header.dart';
 import '../../widgets/custom_button.dart';
@@ -93,21 +93,18 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
     setState(() => _isLoading = false);
 
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const Text('Demo Signup Successful 🎉'),
+      const SnackBar(
+        content: Text('Demo Signup Successful 🎉'),
         backgroundColor: AppColors.success,
-        action: SnackBarAction(
-          label: 'Login',
-          textColor: Colors.white,
-          onPressed: () => context.go(AppRoutes.login),
-        ),
       ),
     );
 
-    // Redirect back to login after a short delay
-    await Future.delayed(const Duration(seconds: 2));
+    // Redirect to onboarding directly
+    await Future.delayed(const Duration(seconds: 1));
     if (!mounted) return;
-    context.go(AppRoutes.login);
+    
+    ref.read(authNotifierProvider.notifier).forceLogin(_emailController.text);
+    context.go(AppRoutes.onboarding);
   }
 
   @override

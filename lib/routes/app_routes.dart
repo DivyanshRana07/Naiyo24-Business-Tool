@@ -15,6 +15,7 @@ abstract final class AppRoutes {
   static const String splash    = '/';
   static const String login     = '/login';
   static const String signup    = '/signup';
+  static const String onboarding = '/onboarding';
 
   // ── Main App ──────────────────────────────────────────────────────────────
   static const String dashboard  = '/dashboard';
@@ -44,6 +45,7 @@ abstract final class AppRoutes {
 
   static const Set<String> _protectedRoutes = {
     dashboard,
+    onboarding,
     invoices,
     quotations,
     purchases,
