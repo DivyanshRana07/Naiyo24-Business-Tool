@@ -94,11 +94,11 @@ class _ProductsScreenState extends ConsumerState<ProductsScreen>
                           // FAB-style button for active tab
                           _tabController.index == 0
                               ? _AddButton(
-                                  label: '+ Add New Product',
+                                  label: 'Add New Product',
                                   onTap: () => _showProductDialog(),
                                 )
                               : _AddButton(
-                                  label: '+ Add New Service',
+                                  label: 'Add New Service',
                                   onTap: () => _showServiceDialog(),
                                 ),
                         ],
@@ -212,7 +212,7 @@ class _ProductTabState extends ConsumerState<_ProductTab> {
                 ? _EmptyState(
                     icon: Icons.inventory_2_outlined,
                     message: query.isEmpty
-                        ? 'No products yet.\nTap "+ Add New Product" to get started.'
+                        ? 'No products yet.\nTap "Add New Product" to get started.'
                         : 'No products matched "$query".',
                   )
                 : _ProductDataTable(
@@ -293,7 +293,7 @@ class _ServiceTabState extends ConsumerState<_ServiceTab> {
                 ? _EmptyState(
                     icon: Icons.miscellaneous_services_outlined,
                     message: query.isEmpty
-                        ? 'No services yet.\nTap "+ Add New Service" to get started.'
+                        ? 'No services yet.\nTap "Add New Service" to get started.'
                         : 'No services matched "$query".',
                   )
                 : _ServiceDataTable(

@@ -18,8 +18,13 @@ class AuthNotifier extends _$AuthNotifier {
   AuthState build() {
     final prefs = ref.watch(sharedPrefsProvider);
     final isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
+    final hasCompletedOnboarding = prefs.getBool('hasCompletedOnboarding') ?? false;
     final userEmail = prefs.getString('userEmail');
-    return AuthState(isLoggedIn: isLoggedIn, userEmail: userEmail);
+    return AuthState(
+      isLoggedIn: isLoggedIn,
+      hasCompletedOnboarding: hasCompletedOnboarding,
+      userEmail: userEmail,
+    );
   }
 
   /// Attempts login with [email] and [password].
@@ -40,12 +45,32 @@ class AuthNotifier extends _$AuthNotifier {
     return false;
   }
 
+  /// Bypasses demo credential check and logs the user in immediately.
+  /// Used right after a successful registration.
+  void forceLogin(String email) {
+    final cleanEmail = email.trim();
+    state = state.copyWith(isLoggedIn: true, userEmail: cleanEmail);
+    
+    final prefs = ref.read(sharedPrefsProvider);
+    prefs.setBool('isLoggedIn', true);
+    prefs.setString('userEmail', cleanEmail);
+  }
+
+  /// Marks the onboarding flow as completed.
+  void completeOnboarding() {
+    state = state.copyWith(hasCompletedOnboarding: true);
+    final prefs = ref.read(sharedPrefsProvider);
+    prefs.setBool('hasCompletedOnboarding', true);
+  }
+
   /// Logs out the current user.
   void logout() {
     state = const AuthState();
     final prefs = ref.read(sharedPrefsProvider);
     prefs.remove('isLoggedIn');
     prefs.remove('userEmail');
+    // We intentionally do NOT remove 'hasCompletedOnboarding' so returning users
+    // don't have to repeat the onboarding process after logging back in.
   }
 
   /// Returns whether the user is currently logged in.

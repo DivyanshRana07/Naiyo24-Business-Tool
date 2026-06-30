@@ -7,6 +7,7 @@ import '../providers/auth_provider.dart';
 import '../screens/splash/splash_screen.dart';
 import '../screens/login/login_screen.dart';
 import '../screens/signup/signup_screen.dart';
+import '../screens/onboarding/onboarding_screen.dart' deferred as onboarding_screen;
 import '../screens/dashboard/dashboard_screen.dart' deferred as dashboard;
 import '../screens/settings/settings_screen.dart' deferred as settings;
 import '../screens/invoices/invoices_screen.dart' deferred as invoices;
@@ -93,15 +94,23 @@ GoRouter appRouter(Ref ref) {
     // ── Global Redirect ────────────────────────────────────────────────────────
     redirect: (BuildContext context, GoRouterState state) {
       final isLoggedIn = authState.isLoggedIn;
+      final hasCompletedOnboarding = authState.hasCompletedOnboarding;
       final location = state.matchedLocation;
 
-      // Not logged in → trying to access a protected route
+      // 1. Not logged in → trying to access a protected route
       if (AppRoutes.isProtected(location) && !isLoggedIn) {
         return AppRoutes.login;
       }
 
-      // Logged in → trying to access an auth screen
-      // Removed global redirect so manual navigation to /login stays on /login.
+      // 2. Logged in but HAS NOT completed onboarding → FORCE to /onboarding
+      if (isLoggedIn && !hasCompletedOnboarding && location != AppRoutes.onboarding) {
+        return AppRoutes.onboarding;
+      }
+
+      // 3. Logged in and HAS completed onboarding → trying to access /onboarding
+      if (isLoggedIn && hasCompletedOnboarding && location == AppRoutes.onboarding) {
+        return AppRoutes.dashboard;
+      }
 
       return null; // No redirect needed
     },
@@ -131,6 +140,18 @@ GoRouter appRouter(Ref ref) {
         pageBuilder: (context, state) => CustomTransitionPage(
           key: state.pageKey,
           child: const SignupScreen(),
+          transitionsBuilder: _fadeTransition,
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.onboarding,
+        name: 'onboarding',
+        pageBuilder: (context, state) => CustomTransitionPage(
+          key: state.pageKey,
+          child: DeferredWidget(
+            load: onboarding_screen.loadLibrary,
+            builder: (context) => onboarding_screen.OnboardingScreen(),
+          ),
           transitionsBuilder: _fadeTransition,
         ),
       ),
