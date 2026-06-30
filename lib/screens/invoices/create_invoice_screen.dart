@@ -338,10 +338,40 @@ class _CreateInvoiceScreenState
       children: [
         _sectionTitle('1. Select Customer', Icons.person_rounded),
         const SizedBox(height: AppSpacing.md),
-        // Customer autocomplete
-        CustomerAutocomplete(
-          selectedCustomer: _selectedCustomer,
-          onSelected: (c) => setState(() => _selectedCustomer = c),
+        // Customer autocomplete + Add New Client button
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: CustomerAutocomplete(
+                selectedCustomer: _selectedCustomer,
+                onSelected: (c) => setState(() => _selectedCustomer = c),
+              ),
+            ),
+            const SizedBox(width: AppSpacing.sm),
+            FilledButton.icon(
+              onPressed: () => context.push(AppRoutes.newClient),
+              style: FilledButton.styleFrom(
+                backgroundColor: const Color(0xFF16A34A),
+                minimumSize: const Size(0, 48),
+                padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.md),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(AppBorderRadius.md),
+                ),
+              ),
+              icon: const Icon(Icons.person_add_rounded,
+                  size: 16, color: Colors.white),
+              label: const Text(
+                'Add New Client',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 13,
+                ),
+              ),
+            ),
+          ],
         ),
         // Customer details card (shown after selection)
         if (_selectedCustomer != null) ...[
@@ -359,11 +389,41 @@ class _CreateInvoiceScreenState
         _sectionTitle('2. Add Products / Services', Icons.add_shopping_cart_rounded),
         const SizedBox(height: AppSpacing.md),
 
-        // Item search autocomplete
-        ItemSearchAutocomplete(
-          onSelected: (item) {
-            setState(() => _lineItems = [..._lineItems, item]);
-          },
+        // Item search autocomplete + Add New Product button
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: ItemSearchAutocomplete(
+                onSelected: (item) {
+                  setState(() => _lineItems = [..._lineItems, item]);
+                },
+              ),
+            ),
+            const SizedBox(width: AppSpacing.sm),
+            FilledButton.icon(
+              onPressed: () => context.push(AppRoutes.newProduct),
+              style: FilledButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                minimumSize: const Size(0, 48),
+                padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.md),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(AppBorderRadius.md),
+                ),
+              ),
+              icon: const Icon(Icons.add_box_rounded,
+                  size: 16, color: Colors.white),
+              label: const Text(
+                'Add New Product',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 13,
+                ),
+              ),
+            ),
+          ],
         ),
         const SizedBox(height: AppSpacing.md),
 

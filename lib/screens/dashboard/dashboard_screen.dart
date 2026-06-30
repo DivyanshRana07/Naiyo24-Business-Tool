@@ -7,7 +7,7 @@ import '../../theme/theme.dart';
 import '../../notifiers/auth_notifier.dart';
 import '../../widgets/dashboard_app_bar.dart';
 import '../../widgets/side_navigation.dart';
-import '../../widgets/welcome_hero.dart';
+
 import '../../cards/stat_card.dart';
 import '../../cards/activity_card.dart';
 import '../../cards/feature_block_card.dart';
@@ -50,13 +50,10 @@ class DashboardScreen extends ConsumerWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    WelcomeHero(email: authState.userEmail),
+                    _ProfileHeader(email: authState.userEmail),
                     const SizedBox(height: AppSpacing.xxl),
-                    
+
                     _StatsGrid(),
-                    const SizedBox(height: AppSpacing.xxl),
-                    
-                    _QuickActionsSection(),
                     const SizedBox(height: AppSpacing.xxl),
                     
                     _GettingStartedGrid(),
@@ -77,6 +74,100 @@ class DashboardScreen extends ConsumerWidget {
   void _logout(WidgetRef ref, BuildContext context) {
     ref.read(authNotifierProvider.notifier).logout();
     context.go(AppRoutes.login);
+  }
+}
+
+// ─── Profile Header ─────────────────────────────────────────────────────────
+
+class _ProfileHeader extends StatelessWidget {
+  const _ProfileHeader({this.email});
+  final String? email;
+
+  @override
+  Widget build(BuildContext context) {
+    // Derive display name from email (e.g. "demo@refrens.com" → "Demo")
+    String displayName = 'Demo User';
+    if (email != null && email!.contains('@')) {
+      final raw = email!.split('@').first;
+      displayName = raw
+          .split(RegExp(r'[._\-]'))
+          .map((w) => w.isEmpty ? '' : '${w[0].toUpperCase()}${w.substring(1)}')
+          .join(' ');
+    }
+    const companyName = 'Naiyo24';
+    final initial = displayName.isNotEmpty ? displayName[0].toUpperCase() : 'D';
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        // ── Large avatar ──────────────────────────────────────────────────────
+        CircleAvatar(
+          radius: 32,
+          backgroundColor: AppColors.primary,
+          child: Text(
+            initial,
+            style: const TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.w700,
+              fontSize: 26,
+            ),
+          ),
+        ),
+        const SizedBox(width: AppSpacing.lg),
+
+        // ── Greeting text ─────────────────────────────────────────────────────
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Line 1: "Hello <Name>" — regular weight
+              Text(
+                'Hello $displayName',
+                style: AppTextStyles.bodyLarge.copyWith(
+                  color: AppColors.textSecondary,
+                  fontWeight: FontWeight.w400,
+                  fontSize: 15,
+                ),
+              ),
+              const SizedBox(height: 2),
+              // Line 2: "Welcome to <Company>!" — bold, larger
+              Text(
+                'Welcome to $companyName!',
+                style: AppTextStyles.h2.copyWith(
+                  color: AppColors.textPrimary,
+                  fontWeight: FontWeight.w700,
+                  fontSize: 20,
+                ),
+              ),
+            ],
+          ),
+        ),
+
+        // ── Book a Demo button ────────────────────────────────────────────────
+        FilledButton.icon(
+          onPressed: () {},
+          style: FilledButton.styleFrom(
+            backgroundColor: const Color(0xFFE91E8C),
+            foregroundColor: Colors.white,
+            minimumSize: const Size(0, 44),
+            padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.lg, vertical: 0),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(AppBorderRadius.md),
+            ),
+          ),
+          icon: const Icon(Icons.desktop_mac_outlined, size: 16),
+          label: const Text(
+            'Book A Demo',
+            style: TextStyle(
+              fontWeight: FontWeight.w600,
+              fontSize: 13,
+            ),
+          ),
+        ),
+      ],
+    );
   }
 }
 

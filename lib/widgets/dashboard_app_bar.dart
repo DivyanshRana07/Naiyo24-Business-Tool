@@ -6,7 +6,7 @@ import '../../routes/app_routes.dart';
 import '../../notifiers/auth_notifier.dart';
 import '../../providers/sidebar_provider.dart';
 import 'logo_widget.dart';
-import 'chat_support_popup.dart';
+
 
 class DashboardAppBar extends ConsumerWidget implements PreferredSizeWidget {
   const DashboardAppBar({super.key, this.email});
@@ -15,15 +15,6 @@ class DashboardAppBar extends ConsumerWidget implements PreferredSizeWidget {
   @override
   Size get preferredSize => const Size.fromHeight(64);
 
-  Widget _buildResourceItem(IconData icon, String text, {Color? iconColor}) {
-    return Row(
-      children: [
-        Icon(icon, size: 20, color: iconColor ?? AppColors.primary),
-        const SizedBox(width: AppSpacing.sm),
-        Text(text, style: AppTextStyles.bodyMedium),
-      ],
-    );
-  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -60,143 +51,6 @@ class DashboardAppBar extends ConsumerWidget implements PreferredSizeWidget {
         ),
       ),
       actions: [
-        IconButton(
-          icon: const Icon(Icons.help_outline_rounded, color: Colors.white),
-          onPressed: () => showChatSupportPopup(context),
-          tooltip: 'Support',
-        ),
-        const SizedBox(width: AppSpacing.xs),
-        IconButton(
-          icon: const Icon(Icons.bolt_outlined, color: Colors.white),
-          onPressed: () {},
-          tooltip: 'Latest Updates',
-        ),
-        const SizedBox(width: AppSpacing.xs),
-        PopupMenuButton<String>(
-          offset: const Offset(0, 48),
-          elevation: 4,
-          tooltip: 'Resources',
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppBorderRadius.lg),
-          ),
-          icon: const Icon(Icons.headset_mic_outlined, color: Colors.white),
-          itemBuilder: (context) => [
-            PopupMenuItem(
-              enabled: false,
-              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
-              child: Text('Resources', style: AppTextStyles.h3),
-            ),
-            PopupMenuItem(
-              value: 'book_demo',
-              child: _buildResourceItem(Icons.calendar_today_outlined, 'Book a Demo'),
-            ),
-            const PopupMenuDivider(),
-            PopupMenuItem(
-              value: 'help_articles',
-              child: _buildResourceItem(Icons.menu_book_outlined, 'Read Help Articles'),
-            ),
-            PopupMenuItem(
-              value: 'demo_videos',
-              child: _buildResourceItem(Icons.play_circle_filled_rounded, 'View Demo Videos', iconColor: Colors.red),
-            ),
-            const PopupMenuDivider(),
-            PopupMenuItem(
-              value: 'report_issue',
-              child: _buildResourceItem(Icons.bug_report_outlined, 'Report an Issue'),
-            ),
-            PopupMenuItem(
-              value: 'request_feature',
-              child: _buildResourceItem(Icons.open_in_new_rounded, 'Request a Feature'),
-            ),
-            PopupMenuItem(
-              value: 'new_updates',
-              child: _buildResourceItem(Icons.celebration_outlined, 'Explore New Updates'),
-            ),
-            PopupMenuItem(
-              value: 'keyboard_shortcuts',
-              child: _buildResourceItem(Icons.key_outlined, 'Keyboard Shortcuts'),
-            ),
-          ],
-        ),
-        const SizedBox(width: AppSpacing.xs),
-        PopupMenuButton<String>(
-          offset: const Offset(0, 48),
-          elevation: 4,
-          tooltip: 'Notifications',
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppBorderRadius.lg),
-          ),
-          icon: const Badge(
-            label: Text('3'),
-            backgroundColor: Colors.white,
-            textColor: Color(0xFF6D28D9),
-            child: Icon(Icons.notifications_outlined, color: Colors.white),
-          ),
-          itemBuilder: (context) => [
-            PopupMenuItem(
-              enabled: false,
-              padding: EdgeInsets.zero,
-              child: SizedBox(
-                width: 360,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          Text('Notifications', style: AppTextStyles.h3),
-                          const SizedBox(width: AppSpacing.sm),
-                          Expanded(
-                            child: FittedBox(
-                              fit: BoxFit.scaleDown,
-                              alignment: Alignment.centerRight,
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Text('Mark all as read', style: AppTextStyles.bodyMedium.copyWith(color: AppColors.primary)),
-                                  const SizedBox(width: AppSpacing.md),
-                                  Text('View All', style: AppTextStyles.bodyMedium.copyWith(color: AppColors.primary)),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const Divider(height: 1, color: AppColors.border),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 48, horizontal: 24),
-                      child: Column(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(24),
-                            decoration: const BoxDecoration(
-                              color: AppColors.primaryLight,
-                              shape: BoxShape.circle,
-                            ),
-                            child: const Icon(Icons.notifications_none_rounded, size: 48, color: AppColors.primaryMid),
-                          ),
-                          const SizedBox(height: AppSpacing.lg),
-                          Text('No Notifications here', style: AppTextStyles.h3),
-                          const SizedBox(height: AppSpacing.sm),
-                          Text(
-                            'Nothing to worry. We will notify you regarding important activities here.',
-                            textAlign: TextAlign.center,
-                            style: AppTextStyles.bodyMedium.copyWith(color: AppColors.textSecondary),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(width: AppSpacing.md),
         PopupMenuButton<String>(
           offset: const Offset(0, 48),
           elevation: 4,
