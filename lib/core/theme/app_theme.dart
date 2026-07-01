@@ -6,7 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 class AppColors {
   AppColors._();
 
-  // Primary purple – Refrens brand
+  // Primary purple – Naiyo Business Tool brand
   static const Color primary = Color(0xFF6C3CE1);
   static const Color primaryDark = Color(0xFF5429C8);
   static const Color primaryLight = Color(0xFFEDE8FF);

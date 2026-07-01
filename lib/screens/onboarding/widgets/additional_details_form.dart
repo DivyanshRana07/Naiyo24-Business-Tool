@@ -46,7 +46,7 @@ class _AdditionalDetailsFormState extends State<AdditionalDetailsForm> {
 
         Align(
           alignment: Alignment.centerLeft,
-          child: _buildLabel("1. What do you want to use Refrens for?*", sub: "Help us serve you better!"),
+          child: _buildLabel("1. What do you want to use Naiyo Business Tool for?*", sub: "Help us serve you better!"),
         ),
         DropdownButtonFormField<String>(
           decoration: _inputDecoration("Select..."),

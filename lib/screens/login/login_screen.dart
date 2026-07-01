@@ -13,7 +13,7 @@ import '../../widgets/floating_chat_button.dart';
 import '../../widgets/google_button.dart';
 import '../../widgets/password_field.dart';
 
-/// Login Screen – replicates the Refrens authentication page.
+/// Login Screen – replicates the Naiyo Business Tool authentication page.
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
 
@@ -215,7 +215,7 @@ class _LoginCard extends StatelessWidget {
                 children: [
                   const TextSpan(text: 'Demo credentials: '),
                   TextSpan(
-                    text: 'demo@refrens.com',
+                    text: 'naiyodemo@gmail.com',
                     style: AppTextStyles.bodyMedium.copyWith(
                       color: AppColors.primary,
                       fontWeight: FontWeight.w600,

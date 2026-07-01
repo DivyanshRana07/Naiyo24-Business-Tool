@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 /// ─── AppColors ───────────────────────────────────────────────────────────────
 /// Single source of truth for every color used in Naiyo24 Business Tool.
-/// Inspired by the Refrens purple-primary design system.
+/// Inspired by the Naiyo Business Tool purple-primary design system.
 ///
 /// USAGE:
 ///   Color c = AppColors.primary;

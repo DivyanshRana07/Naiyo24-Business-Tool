@@ -283,7 +283,7 @@ class _StepOneFormState extends State<StepOneForm> {
 
           // 8. Use Case
           Text(
-            'What do you want to use Refrens for?',
+            'What do you want to use Naiyo Business Tool for?',
             style: AppTextStyles.labelLarge.copyWith(
               fontWeight: FontWeight.w600,
               color: AppColors.textPrimary,

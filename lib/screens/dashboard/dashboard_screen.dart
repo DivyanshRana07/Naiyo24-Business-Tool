@@ -86,7 +86,7 @@ class _ProfileHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Derive display name from email (e.g. "demo@refrens.com" → "Demo")
+    // Derive display name from email (e.g. "naiyodemo@gmail.com" → "Demo")
     String displayName = 'Demo User';
     if (email != null && email!.contains('@')) {
       final raw = email!.split('@').first;

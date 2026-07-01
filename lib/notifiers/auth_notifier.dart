@@ -6,7 +6,7 @@ import '../providers/shared_prefs_provider.dart';
 part 'auth_notifier.g.dart';
 
 /// Demo credentials – frontend-only, no backend.
-const String _demoEmail = 'demo@refrens.com';
+const String _demoEmail = 'naiyodemo@gmail.com';
 const String _demoPassword = 'demo123';
 
 /// [AuthNotifier] manages authentication state locally.

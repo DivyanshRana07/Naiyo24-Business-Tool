@@ -327,7 +327,7 @@ class StepTwoForm extends StatelessWidget {
       children: [
         // ── 1. Use Case ────────────────────────────────────────────────────
         const Text(
-          '1. What do you want to use Refrens for?*',
+          '1. What do you want to use Naiyo Business Tool for?*',
           style: TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w600,

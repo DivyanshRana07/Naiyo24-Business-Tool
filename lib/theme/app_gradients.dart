@@ -31,7 +31,7 @@ abstract final class AppGradients {
     end: Alignment.bottomRight,
   );
 
-  /// Premium / upgrade button (orange-red, like Refrens Premium Trial)
+  /// Premium / upgrade button (orange-red, like Naiyo Business Tool Premium Trial)
   static const LinearGradient premiumButton = LinearGradient(
     colors: [Color(0xFFFF6B35), Color(0xFFFF3D7F)],
     begin: Alignment.centerLeft,

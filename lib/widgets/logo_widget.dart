@@ -3,7 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../theme/theme.dart';
 
-/// Refrens-style purple logo widget.
+/// Naiyo Business Tool-style purple logo widget.
 ///
 /// Renders as inline text logo (no SVG dependency required for web).
 class LogoWidget extends StatelessWidget {

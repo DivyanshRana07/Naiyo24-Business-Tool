@@ -3,7 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../theme/theme.dart';
 
-/// A "Getting Started" feature block card matching the Refrens dashboard style.
+/// A "Getting Started" feature block card matching the Naiyo Business Tool dashboard style.
 ///
 /// Displays a circular icon badge, a bold title, a short description, and an
 /// outlined action button that routes to the target screen when tapped.
