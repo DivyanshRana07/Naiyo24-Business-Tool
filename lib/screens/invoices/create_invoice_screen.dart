@@ -51,43 +51,71 @@ class _CreateInvoiceScreenState
       _lineItems.fold(0, (s, i) => s + i.gstAmount);
   double get _grandTotal => _subTotal - _totalDiscount + _totalGst;
 
+  Future<bool> _onWillPop() async {
+    if (_selectedCustomer == null && _lineItems.isEmpty) {
+      return true;
+    }
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Discard Changes?', style: AppTextStyles.h2),
+        content: Text('You have unsaved changes. Are you sure you want to discard them?', style: AppTextStyles.bodyMedium),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text('Cancel', style: AppTextStyles.labelLarge.copyWith(color: AppColors.textSecondary)),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            style: FilledButton.styleFrom(backgroundColor: AppColors.error),
+            child: Text('Discard', style: AppTextStyles.labelLarge.copyWith(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+    return confirm ?? false;
+  }
+
   @override
   Widget build(BuildContext context) {
     final authState = ref.watch(authNotifierProvider);
     final isDesktop = MediaQuery.of(context).size.width >= 1100;
     final isMedium = MediaQuery.of(context).size.width >= 900;
 
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: DashboardAppBar(email: authState.userEmail),
-      drawer: !isMedium
-          ? Drawer(
-              child: SideNavigation(
+    return WillPopScope(
+      onWillPop: _onWillPop,
+      child: Scaffold(
+        backgroundColor: AppColors.background,
+        appBar: DashboardAppBar(email: authState.userEmail, showBackButton: true),
+        drawer: !isMedium
+            ? Drawer(
+                child: SideNavigation(
+                  email: authState.userEmail,
+                  onLogout: () =>
+                      ref.read(authNotifierProvider.notifier).logout(),
+                  currentRoute: AppRoutes.invoices,
+                ),
+              )
+            : null,
+        body: Row(
+          children: [
+            if (isMedium)
+              SideNavigation(
                 email: authState.userEmail,
                 onLogout: () =>
                     ref.read(authNotifierProvider.notifier).logout(),
                 currentRoute: AppRoutes.invoices,
               ),
-            )
-          : null,
-      body: Row(
-        children: [
-          if (isMedium)
-            SideNavigation(
-              email: authState.userEmail,
-              onLogout: () =>
-                  ref.read(authNotifierProvider.notifier).logout(),
-              currentRoute: AppRoutes.invoices,
+            Expanded(
+              child: Form(
+                key: _formKey,
+                child: isDesktop
+                    ? _desktopLayout()
+                    : _mobileLayout(),
+              ),
             ),
-          Expanded(
-            child: Form(
-              key: _formKey,
-              child: isDesktop
-                  ? _desktopLayout()
-                  : _mobileLayout(),
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

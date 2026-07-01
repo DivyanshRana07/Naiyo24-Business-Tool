@@ -10,6 +10,7 @@ import '../../theme/theme.dart';
 import '../../routes/app_routes.dart';
 import '../../widgets/dashboard_app_bar.dart';
 import '../../widgets/side_navigation.dart';
+import '../../widgets/export_dialog.dart';
 
 class PurchaseOrdersScreen extends ConsumerStatefulWidget {
   const PurchaseOrdersScreen({super.key});
@@ -24,6 +25,37 @@ class _PurchaseOrdersScreenState extends ConsumerState<PurchaseOrdersScreen> {
   void _logout(BuildContext context) {
     ref.read(authNotifierProvider.notifier).logout();
     context.go(AppRoutes.login);
+  }
+
+  void _handleExport(BuildContext context, List<PurchaseOrderModel> pos) {
+    final csvContent = [
+      'PO Number,Date,Vendor,Title,Amount,Status',
+      ...pos.map((p) => '${p.poNumber},${p.date.toIso8601String().split('T')[0]},"${p.vendorName}","${p.title}",${p.totalAmount},${p.status.name}')
+    ].join('\n');
+
+    final waContent = [
+      '*Naiyo24 Purchase Order Export*',
+      'Total POs: ${pos.length}',
+      ...pos.map((p) => '- ${p.poNumber} | ${p.vendorName} | ₹${p.totalAmount} (${p.status.name.toUpperCase()})')
+    ].join('\n');
+
+    final pdfContent = [
+      'Naiyo24 Business Tool - Purchase Orders Report',
+      '==============================================',
+      'PO Number\tDate\tVendor\tTotal\tStatus',
+      ...pos.map((p) => '${p.poNumber}\t${p.date.toIso8601String().split('T')[0]}\t${p.vendorName}\t₹${p.totalAmount}\t${p.status.name}')
+    ].join('\n');
+
+    showDialog(
+      context: context,
+      builder: (_) => ExportOptionsDialog(
+        title: 'Purchase Orders',
+        csvContent: csvContent,
+        whatsappText: waContent,
+        pdfContent: pdfContent,
+        filenamePrefix: 'purchase_orders',
+      ),
+    );
   }
 
   @override
@@ -66,29 +98,79 @@ class _PurchaseOrdersScreenState extends ConsumerState<PurchaseOrdersScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // Header
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  Wrap(
+                    alignment: WrapAlignment.spaceBetween,
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    spacing: AppSpacing.md,
+                    runSpacing: AppSpacing.md,
                     children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
                         children: [
-                          Text('Purchase Orders', style: AppTextStyles.h1),
-                          const SizedBox(height: 4),
-                          Text('Manage and track all your purchase orders.', style: AppTextStyles.bodyMedium),
+                          InkWell(
+                            onTap: () => context.go(AppRoutes.dashboard),
+                            borderRadius: BorderRadius.circular(AppBorderRadius.sm),
+                            child: Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: AppColors.surfaceVariant,
+                                borderRadius: BorderRadius.circular(AppBorderRadius.sm),
+                              ),
+                              child: const Icon(Icons.arrow_back_rounded,
+                                  size: 20, color: AppColors.textSecondary),
+                            ),
+                          ),
+                          const SizedBox(width: AppSpacing.md),
+                          const Icon(Icons.shopping_bag_rounded,
+                              color: AppColors.primary, size: 28),
+                          const SizedBox(width: AppSpacing.sm),
+                          Flexible(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text('Purchase Orders', style: AppTextStyles.h1),
+                                const SizedBox(height: 4),
+                                Text('Manage and track all your purchase orders.', style: AppTextStyles.bodyMedium),
+                              ],
+                            ),
+                          ),
                         ],
                       ),
-                      FilledButton.icon(
-                        onPressed: () => context.push(AppRoutes.newPurchaseOrder),
-                        icon: const Icon(Icons.add_rounded, size: 18),
-                        label: const Text('Create PO'),
-                        style: FilledButton.styleFrom(
-                          backgroundColor: AppColors.primary,
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.md),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(AppBorderRadius.md),
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          OutlinedButton.icon(
+                            onPressed: () => _handleExport(context, filteredPos),
+                            style: OutlinedButton.styleFrom(
+                              side: const BorderSide(color: AppColors.border),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 20, vertical: 14),
+                              shape: RoundedRectangleBorder(
+                                borderRadius:
+                                    BorderRadius.circular(AppBorderRadius.md),
+                              ),
+                            ),
+                            icon: const Icon(Icons.download_rounded,
+                                size: 18, color: AppColors.textPrimary),
+                            label: Text('Export',
+                                style: AppTextStyles.labelLarge
+                                    .copyWith(color: AppColors.textPrimary)),
                           ),
-                        ),
+                          const SizedBox(width: AppSpacing.md),
+                          FilledButton.icon(
+                            onPressed: () => context.push(AppRoutes.newPurchaseOrder),
+                            icon: const Icon(Icons.add_rounded, size: 18),
+                            label: const Text('Add Purchase Order'),
+                            style: FilledButton.styleFrom(
+                              backgroundColor: AppColors.primary,
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.md),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(AppBorderRadius.md),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),

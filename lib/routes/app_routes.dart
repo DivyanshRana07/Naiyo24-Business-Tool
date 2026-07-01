@@ -34,6 +34,7 @@ abstract final class AppRoutes {
   static const String returnItems  = '/invoices/:id/return';
   static const String newQuotation = '/quotations/new';
   static const String newPurchaseOrder = '/purchase-orders/new';
+  static const String newVendor    = '/vendors/new';
   static const String newClient    = '/clients/new';
   static const String newLead      = '/leads/new';
   static const String newProduct   = '/products/new';

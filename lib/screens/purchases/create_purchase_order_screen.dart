@@ -121,15 +121,51 @@ class _CreatePurchaseOrderScreenState
     context.pop();
   }
 
+  Future<bool> _onWillPop() async {
+    final titleEmpty = _titleController.text.isEmpty;
+    final descEmpty = _descriptionController.text.isEmpty;
+    final noVendor = _selectedVendor == null;
+    final firstItemEmpty = _items.isEmpty || (_items.length == 1 &&
+        (_items[0]['desc'] as TextEditingController).text.isEmpty &&
+        (_items[0]['qty'] as TextEditingController).text == '1' &&
+        (_items[0]['price'] as TextEditingController).text == '0');
+
+    if (titleEmpty && descEmpty && noVendor && firstItemEmpty) {
+      return true;
+    }
+
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Discard Changes?', style: AppTextStyles.h2),
+        content: Text('You have unsaved changes. Are you sure you want to discard them?', style: AppTextStyles.bodyMedium),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text('Cancel', style: AppTextStyles.labelLarge.copyWith(color: AppColors.textSecondary)),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            style: FilledButton.styleFrom(backgroundColor: AppColors.error),
+            child: Text('Discard', style: AppTextStyles.labelLarge.copyWith(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+    return confirm ?? false;
+  }
+
   @override
   Widget build(BuildContext context) {
     final authState = ref.watch(authNotifierProvider);
     final vendors = ref.watch(vendorNotifierProvider);
     final isDesktop = MediaQuery.of(context).size.width >= 900;
 
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: DashboardAppBar(email: authState.userEmail),
+    return WillPopScope(
+      onWillPop: _onWillPop,
+      child: Scaffold(
+        backgroundColor: AppColors.background,
+      appBar: DashboardAppBar(email: authState.userEmail, showBackButton: true),
       drawer: !isDesktop
           ? Drawer(
               child: SideNavigation(
@@ -596,7 +632,7 @@ class _CreatePurchaseOrderScreenState
           ),
         ],
       ),
-    );
+    ),);
   }
 
   // ── Helpers ────────────────────────────────────────────────────────────────

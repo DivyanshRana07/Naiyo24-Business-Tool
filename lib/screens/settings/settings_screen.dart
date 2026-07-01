@@ -105,14 +105,39 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    'Settings',
-                    style: AppTextStyles.h1,
-                  ),
-                  const SizedBox(height: AppSpacing.sm),
-                  Text(
-                    'Manage your account settings, business configurations, taxes, and third-party integrations.',
-                    style: AppTextStyles.bodyLarge,
+                  Row(
+                    children: [
+                      InkWell(
+                        onTap: () => context.go(AppRoutes.dashboard),
+                        borderRadius: BorderRadius.circular(AppBorderRadius.sm),
+                        child: Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: AppColors.surfaceVariant,
+                            borderRadius: BorderRadius.circular(AppBorderRadius.sm),
+                          ),
+                          child: const Icon(Icons.arrow_back_rounded,
+                              size: 20, color: AppColors.textSecondary),
+                        ),
+                      ),
+                      const SizedBox(width: AppSpacing.md),
+                      const Icon(Icons.settings_rounded,
+                          color: AppColors.primary, size: 28),
+                      const SizedBox(width: AppSpacing.sm),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Settings',
+                            style: AppTextStyles.h1,
+                          ),
+                          Text(
+                            'Manage your account settings, business configurations, and taxes.',
+                            style: AppTextStyles.bodyMedium,
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
                   const SizedBox(height: AppSpacing.xxl),
                   isDesktop ? _buildDesktopLayout() : _buildMobileLayout(),

@@ -9,6 +9,7 @@ import '../../routes/app_routes.dart';
 import '../../theme/theme.dart';
 import '../../widgets/dashboard_app_bar.dart';
 import '../../widgets/side_navigation.dart';
+import '../../widgets/export_dialog.dart';
 
 /// Invoice List screen — shows all saved invoices from [InvoiceNotifier].
 /// The "Create Invoice" button navigates to [AppRoutes.newInvoice].
@@ -33,6 +34,37 @@ class _InvoicesScreenState extends ConsumerState<InvoicesScreen> {
   void dispose() {
     _searchCtrl.dispose();
     super.dispose();
+  }
+
+  void _handleExport(BuildContext context, List<InvoiceModel> invoices) {
+    final csvContent = [
+      'Invoice No,Date,Client,Subtotal,Tax,Total,Status',
+      ...invoices.map((inv) => '${inv.invoiceNo},${inv.invoiceDate},"${inv.customerName}",${inv.subTotal},${inv.totalGst},${inv.grandTotal},${inv.status.name}')
+    ].join('\n');
+
+    final waContent = [
+      '*Naiyo24 Invoice Export*',
+      'Total Invoices: ${invoices.length}',
+      ...invoices.map((inv) => '- ${inv.invoiceNo} | ${inv.customerName} | ₹${inv.grandTotal} (${inv.status.name.toUpperCase()})')
+    ].join('\n');
+
+    final pdfContent = [
+      'Naiyo24 Business Tool - Invoices Report',
+      '======================================',
+      'Invoice No\tDate\tClient\tTotal\tStatus',
+      ...invoices.map((inv) => '${inv.invoiceNo}\t${inv.invoiceDate}\t${inv.customerName}\t₹${inv.grandTotal}\t${inv.status.name}')
+    ].join('\n');
+
+    showDialog(
+      context: context,
+      builder: (_) => ExportOptionsDialog(
+        title: 'Invoices',
+        csvContent: csvContent,
+        whatsappText: waContent,
+        pdfContent: pdfContent,
+        filenamePrefix: 'invoices',
+      ),
+    );
   }
 
   @override
@@ -86,36 +118,83 @@ class _InvoicesScreenState extends ConsumerState<InvoicesScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // ── Page header ─────────────────────────────────────────────
-                  Row(
+                  Wrap(
+                    alignment: WrapAlignment.spaceBetween,
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    spacing: AppSpacing.md,
+                    runSpacing: AppSpacing.md,
                     children: [
-                      const Icon(Icons.receipt_long_rounded,
-                          color: AppColors.primary, size: 28),
-                      const SizedBox(width: AppSpacing.sm),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
                         children: [
-                          Text('Invoices', style: AppTextStyles.h1),
-                          Text('Manage and track your customer invoices.',
-                              style: AppTextStyles.bodyMedium),
+                          InkWell(
+                            onTap: () => context.go(AppRoutes.dashboard),
+                            borderRadius: BorderRadius.circular(AppBorderRadius.sm),
+                            child: Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: AppColors.surfaceVariant,
+                                borderRadius: BorderRadius.circular(AppBorderRadius.sm),
+                              ),
+                              child: const Icon(Icons.arrow_back_rounded,
+                                  size: 20, color: AppColors.textSecondary),
+                            ),
+                          ),
+                          const SizedBox(width: AppSpacing.md),
+                          const Icon(Icons.receipt_long_rounded,
+                              color: AppColors.primary, size: 28),
+                          const SizedBox(width: AppSpacing.sm),
+                          Flexible(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text('Invoices', style: AppTextStyles.h1),
+                                Text('Manage and track your customer invoices.',
+                                    style: AppTextStyles.bodyMedium),
+                              ],
+                            ),
+                          ),
                         ],
                       ),
-                      const Spacer(),
-                      FilledButton.icon(
-                        onPressed: () => context.push(AppRoutes.newInvoice),
-                        style: FilledButton.styleFrom(
-                          backgroundColor: AppColors.primary,
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 20, vertical: 14),
-                          shape: RoundedRectangleBorder(
-                            borderRadius:
-                                BorderRadius.circular(AppBorderRadius.md),
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          OutlinedButton.icon(
+                            onPressed: () => _handleExport(context, allInvoices),
+                            style: OutlinedButton.styleFrom(
+                              side: const BorderSide(color: AppColors.border),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 20, vertical: 14),
+                              shape: RoundedRectangleBorder(
+                                borderRadius:
+                                    BorderRadius.circular(AppBorderRadius.md),
+                              ),
+                            ),
+                            icon: const Icon(Icons.download_rounded,
+                                size: 18, color: AppColors.textPrimary),
+                            label: Text('Export',
+                                style: AppTextStyles.labelLarge
+                                    .copyWith(color: AppColors.textPrimary)),
                           ),
-                        ),
-                        icon: const Icon(Icons.add_rounded,
-                            size: 18, color: Colors.white),
-                        label: Text('Create Invoice',
-                            style: AppTextStyles.labelLarge
-                                .copyWith(color: Colors.white)),
+                          const SizedBox(width: AppSpacing.md),
+                          FilledButton.icon(
+                            onPressed: () => context.push(AppRoutes.newInvoice),
+                            style: FilledButton.styleFrom(
+                              backgroundColor: AppColors.primary,
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 20, vertical: 14),
+                              shape: RoundedRectangleBorder(
+                                borderRadius:
+                                    BorderRadius.circular(AppBorderRadius.md),
+                              ),
+                            ),
+                            icon: const Icon(Icons.add_rounded,
+                                size: 18, color: Colors.white),
+                            label: Text('Create Invoice',
+                                style: AppTextStyles.labelLarge
+                                    .copyWith(color: Colors.white)),
+                          ),
+                        ],
                       ),
                     ],
                   ),

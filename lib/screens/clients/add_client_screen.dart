@@ -49,14 +49,49 @@ class _AddClientScreenState extends ConsumerState<AddClientScreen> {
     super.dispose();
   }
 
+  Future<bool> _onWillPop() async {
+    final hasInput = _nameCtrl.text.isNotEmpty ||
+        _codeCtrl.text.isNotEmpty ||
+        _mobileCtrl.text.isNotEmpty ||
+        _emailCtrl.text.isNotEmpty ||
+        _addressCtrl.text.isNotEmpty ||
+        _gstCtrl.text.isNotEmpty ||
+        (_creditLimitCtrl.text.isNotEmpty && _creditLimitCtrl.text != '0') ||
+        (_openingBalanceCtrl.text.isNotEmpty && _openingBalanceCtrl.text != '0');
+
+    if (!hasInput) return true;
+
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Discard Changes?', style: AppTextStyles.h2),
+        content: Text('You have unsaved changes. Are you sure you want to discard them?', style: AppTextStyles.bodyMedium),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text('Cancel', style: AppTextStyles.labelLarge.copyWith(color: AppColors.textSecondary)),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            style: FilledButton.styleFrom(backgroundColor: AppColors.error),
+            child: Text('Discard', style: AppTextStyles.labelLarge.copyWith(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+    return confirm ?? false;
+  }
+
   @override
   Widget build(BuildContext context) {
     final authState = ref.watch(authNotifierProvider);
     final isMedium  = MediaQuery.of(context).size.width >= 900;
 
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: DashboardAppBar(email: authState.userEmail),
+    return WillPopScope(
+      onWillPop: _onWillPop,
+      child: Scaffold(
+        backgroundColor: AppColors.background,
+      appBar: DashboardAppBar(email: authState.userEmail, showBackButton: true),
       drawer: !isMedium
           ? Drawer(
               child: SideNavigation(
@@ -297,7 +332,13 @@ class _AddClientScreenState extends ConsumerState<AddClientScreen> {
                                 children: [
                                   Expanded(
                                     child: OutlinedButton(
-                                      onPressed: () => context.pop(),
+                                      onPressed: () {
+                                         if (context.canPop()) {
+                                           context.pop();
+                                         } else {
+                                           context.go(AppRoutes.clients);
+                                         }
+                                       },
                                       style: OutlinedButton.styleFrom(
                                         minimumSize:
                                             const Size(double.infinity, 48),
@@ -366,7 +407,7 @@ class _AddClientScreenState extends ConsumerState<AddClientScreen> {
           ),
         ],
       ),
-    );
+    ),);
   }
 
   // ── Save ────────────────────────────────────────────────────────────────────
@@ -404,7 +445,11 @@ class _AddClientScreenState extends ConsumerState<AddClientScreen> {
     );
 
     // Go back to wherever the user came from (e.g. Create Invoice)
-    context.pop();
+    if (context.canPop()) {
+      context.pop();
+    } else {
+      context.go(AppRoutes.clients);
+    }
   }
 
   // ── Helpers ─────────────────────────────────────────────────────────────────
@@ -413,7 +458,13 @@ class _AddClientScreenState extends ConsumerState<AddClientScreen> {
     return Row(
       children: [
         GestureDetector(
-          onTap: () => context.pop(),
+          onTap: () {
+            if (context.canPop()) {
+              context.pop();
+            } else {
+              context.go(AppRoutes.clients);
+            }
+          },
           child: Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(

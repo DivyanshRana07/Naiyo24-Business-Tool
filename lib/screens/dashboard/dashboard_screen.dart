@@ -383,8 +383,8 @@ class _GettingStartedGrid extends StatelessWidget {
               title: b.title,
               description: b.description,
               actionLabel: b.actionLabel,
-              onAction: () => context.go(b.route),
-              onCardTap: () => context.go(b.listRoute),
+              onAction: () => context.push(b.route),
+              onCardTap: () => context.push(b.listRoute),
             );
           },
         ),

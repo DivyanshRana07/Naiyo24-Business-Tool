@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../notifiers/auth_notifier.dart';
 import '../../notifiers/customer_notifier.dart';
@@ -9,6 +10,7 @@ import '../../theme/theme.dart';
 import '../../widgets/side_navigation.dart';
 import '../../widgets/dashboard_app_bar.dart';
 import 'widgets/customer_form_dialog.dart';
+import '../../widgets/export_dialog.dart';
 
 /// Customer / Client management screen.
 class ClientsScreen extends ConsumerStatefulWidget {
@@ -38,6 +40,37 @@ class _ClientsScreenState extends ConsumerState<ClientsScreen> {
   void dispose() {
     _searchCtrl.dispose();
     super.dispose();
+  }
+
+  void _handleExport(BuildContext context, List<CustomerModel> customers) {
+    final csvContent = [
+      'Client Code,Name,Mobile,GST No,Credit Limit,Opening Balance,Status',
+      ...customers.map((c) => '${c.code},"${c.name}","${c.mobile}","${c.gstNumber ?? ""}",${c.creditLimit},${c.openingBalance},${c.status.name}')
+    ].join('\n');
+
+    final waContent = [
+      '*Naiyo24 Clients Export*',
+      'Total Clients: ${customers.length}',
+      ...customers.map((c) => '- ${c.code} | ${c.name} | ${c.mobile}')
+    ].join('\n');
+
+    final pdfContent = [
+      'Naiyo24 Business Tool - Clients Directory',
+      '==========================================',
+      'Code\tName\tMobile\tGST No\tCredit Limit',
+      ...customers.map((c) => '${c.code}\t${c.name}\t${c.mobile}\t${c.gstNumber ?? "-"}\t₹${c.creditLimit}')
+    ].join('\n');
+
+    showDialog(
+      context: context,
+      builder: (_) => ExportOptionsDialog(
+        title: 'Clients',
+        csvContent: csvContent,
+        whatsappText: waContent,
+        pdfContent: pdfContent,
+        filenamePrefix: 'clients',
+      ),
+    );
   }
 
   @override
@@ -78,29 +111,76 @@ class _ClientsScreenState extends ConsumerState<ClientsScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // ── Page Header ────────────────────────────────────────────
-                  Row(
+                  Wrap(
+                    alignment: WrapAlignment.spaceBetween,
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    spacing: AppSpacing.md,
+                    runSpacing: AppSpacing.md,
                     children: [
-                      const Icon(Icons.people_rounded,
-                          color: AppColors.primary, size: 28),
-                      const SizedBox(width: AppSpacing.sm),
-                      Text('Clients', style: AppTextStyles.h1),
-                      const Spacer(),
-                      FilledButton.icon(
-                        onPressed: () => _showCustomerDialog(),
-                        style: FilledButton.styleFrom(
-                          backgroundColor: AppColors.primary,
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 20, vertical: 12),
-                          shape: RoundedRectangleBorder(
-                            borderRadius:
-                                BorderRadius.circular(AppBorderRadius.md),
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          InkWell(
+                            onTap: () => context.go(AppRoutes.dashboard),
+                            borderRadius: BorderRadius.circular(AppBorderRadius.sm),
+                            child: Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: AppColors.surfaceVariant,
+                                borderRadius: BorderRadius.circular(AppBorderRadius.sm),
+                              ),
+                              child: const Icon(Icons.arrow_back_rounded,
+                                  size: 20, color: AppColors.textSecondary),
+                            ),
                           ),
-                        ),
-                        icon: const Icon(Icons.add,
-                            size: 18, color: Colors.white),
-                        label: Text('Add New Client',
-                            style: AppTextStyles.labelLarge
-                                .copyWith(color: Colors.white)),
+                          const SizedBox(width: AppSpacing.md),
+                          const Icon(Icons.people_rounded,
+                              color: AppColors.primary, size: 28),
+                          const SizedBox(width: AppSpacing.sm),
+                          Flexible(
+                            child: Text('Clients', style: AppTextStyles.h1),
+                          ),
+                        ],
+                      ),
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          OutlinedButton.icon(
+                            onPressed: () => _handleExport(context, customers),
+                            style: OutlinedButton.styleFrom(
+                              side: const BorderSide(color: AppColors.border),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 20, vertical: 12),
+                              shape: RoundedRectangleBorder(
+                                borderRadius:
+                                    BorderRadius.circular(AppBorderRadius.md),
+                              ),
+                            ),
+                            icon: const Icon(Icons.download_rounded,
+                                size: 18, color: AppColors.textPrimary),
+                            label: Text('Export',
+                                style: AppTextStyles.labelLarge
+                                    .copyWith(color: AppColors.textPrimary)),
+                          ),
+                          const SizedBox(width: AppSpacing.md),
+                          FilledButton.icon(
+                            onPressed: () => context.push(AppRoutes.newClient),
+                            style: FilledButton.styleFrom(
+                              backgroundColor: AppColors.primary,
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 20, vertical: 12),
+                              shape: RoundedRectangleBorder(
+                                borderRadius:
+                                    BorderRadius.circular(AppBorderRadius.md),
+                              ),
+                            ),
+                            icon: const Icon(Icons.add,
+                                size: 18, color: Colors.white),
+                            label: Text('Add New Client',
+                                style: AppTextStyles.labelLarge
+                                    .copyWith(color: Colors.white)),
+                          ),
+                        ],
                       ),
                     ],
                   ),

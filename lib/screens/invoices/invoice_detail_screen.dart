@@ -36,7 +36,7 @@ class InvoiceDetailScreen extends ConsumerWidget {
     if (invoice == null) {
       return Scaffold(
         backgroundColor: AppColors.background,
-        appBar: DashboardAppBar(email: authState.userEmail),
+        appBar: DashboardAppBar(email: authState.userEmail, showBackButton: true),
         body: Center(
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -60,7 +60,7 @@ class InvoiceDetailScreen extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: DashboardAppBar(email: authState.userEmail),
+      appBar: DashboardAppBar(email: authState.userEmail, showBackButton: true),
       drawer: !isDesktop
           ? Drawer(
               child: SideNavigation(
@@ -161,7 +161,13 @@ class _HeaderBar extends ConsumerWidget {
       children: [
         // Back
         InkWell(
-          onTap: () => context.pop(),
+          onTap: () {
+            if (context.canPop()) {
+              context.pop();
+            } else {
+              context.go(AppRoutes.invoices);
+            }
+          },
           borderRadius: BorderRadius.circular(AppBorderRadius.sm),
           child: Container(
             padding: const EdgeInsets.all(8),

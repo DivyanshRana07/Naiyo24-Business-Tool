@@ -9,12 +9,21 @@ import 'logo_widget.dart';
 
 
 class DashboardAppBar extends ConsumerWidget implements PreferredSizeWidget {
-  const DashboardAppBar({super.key, this.email});
+  const DashboardAppBar({
+    super.key,
+    this.email,
+    this.showBackButton = false,
+    this.backRoute,
+  });
+
   final String? email;
+  /// When true, renders a back arrow instead of the hamburger menu icon.
+  final bool showBackButton;
+  /// Optional explicit route to go back to. Defaults to Dashboard.
+  final String? backRoute;
 
   @override
   Size get preferredSize => const Size.fromHeight(64);
-
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -23,16 +32,28 @@ class DashboardAppBar extends ConsumerWidget implements PreferredSizeWidget {
       scrolledUnderElevation: 1,
       shadowColor: Colors.transparent,
       titleSpacing: 0,
-      leading: IconButton(
-        icon: const Icon(Icons.menu_rounded, color: Colors.white),
-        onPressed: () {
-          if (MediaQuery.of(context).size.width < 900) {
-            Scaffold.of(context).openDrawer();
-          } else {
-            ref.read(sidebarExpandedProvider.notifier).toggle();
-          }
-        },
-      ),
+      leading: showBackButton
+          ? IconButton(
+              icon: const Icon(Icons.arrow_back_rounded, color: Colors.white),
+              tooltip: 'Back',
+              onPressed: () {
+                if (context.canPop()) {
+                  context.pop();
+                } else {
+                  context.go(backRoute ?? AppRoutes.dashboard);
+                }
+              },
+            )
+          : IconButton(
+              icon: const Icon(Icons.menu_rounded, color: Colors.white),
+              onPressed: () {
+                if (MediaQuery.of(context).size.width < 900) {
+                  Scaffold.of(context).openDrawer();
+                } else {
+                  ref.read(sidebarExpandedProvider.notifier).toggle();
+                }
+              },
+            ),
       flexibleSpace: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(

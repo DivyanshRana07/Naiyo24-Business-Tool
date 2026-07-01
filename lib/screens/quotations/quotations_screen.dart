@@ -7,6 +7,7 @@ import '../../theme/theme.dart';
 import '../../notifiers/auth_notifier.dart';
 import '../../widgets/dashboard_app_bar.dart';
 import '../../widgets/side_navigation.dart';
+import '../../widgets/export_dialog.dart';
 
 class QuotationsScreen extends ConsumerWidget {
   const QuotationsScreen({super.key});
@@ -59,6 +60,37 @@ class QuotationsScreen extends ConsumerWidget {
     context.go(AppRoutes.login);
   }
 
+  void _handleExport(BuildContext context) {
+    final csvContent = [
+      'Quotation No,Client,Date,Amount,Status',
+      ..._quotationsData.map((q) => '${q['id']},"${q['client']}",${q['date']},"${q['amount']}",${q['status']}')
+    ].join('\n');
+
+    final waContent = [
+      '*Naiyo24 Quotation Export*',
+      'Total Quotations: ${_quotationsData.length}',
+      ..._quotationsData.map((q) => '- ${q['id']} | ${q['client']} | ${q['amount']} (${q['status']})')
+    ].join('\n');
+
+    final pdfContent = [
+      'Naiyo24 Business Tool - Quotations Report',
+      '========================================',
+      'Quotation No\tClient\tDate\tAmount\tStatus',
+      ..._quotationsData.map((q) => '${q['id']}\t${q['client']}\t${q['date']}\t${q['amount']}\t${q['status']}')
+    ].join('\n');
+
+    showDialog(
+      context: context,
+      builder: (_) => ExportOptionsDialog(
+        title: 'Quotations',
+        csvContent: csvContent,
+        whatsappText: waContent,
+        pdfContent: pdfContent,
+        filenamePrefix: 'quotations',
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final authState = ref.watch(authNotifierProvider);
@@ -90,33 +122,81 @@ class QuotationsScreen extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  Wrap(
+                    alignment: WrapAlignment.spaceBetween,
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    spacing: AppSpacing.md,
+                    runSpacing: AppSpacing.md,
                     children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
                         children: [
-                          Text('Quotations', style: AppTextStyles.h1),
-                          const SizedBox(height: AppSpacing.xs),
-                          Text('Send estimates to clients and convert them to invoices.', style: AppTextStyles.bodyMedium),
+                          InkWell(
+                            onTap: () => context.go(AppRoutes.dashboard),
+                            borderRadius: BorderRadius.circular(AppBorderRadius.sm),
+                            child: Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: AppColors.surfaceVariant,
+                                borderRadius: BorderRadius.circular(AppBorderRadius.sm),
+                              ),
+                              child: const Icon(Icons.arrow_back_rounded,
+                                  size: 20, color: AppColors.textSecondary),
+                            ),
+                          ),
+                          const SizedBox(width: AppSpacing.md),
+                          const Icon(Icons.description_rounded,
+                              color: AppColors.primary, size: 28),
+                          const SizedBox(width: AppSpacing.sm),
+                          Flexible(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text('Quotations', style: AppTextStyles.h1),
+                                const SizedBox(height: AppSpacing.xs),
+                                Text('Send estimates to clients and convert them to invoices.', style: AppTextStyles.bodyMedium),
+                              ],
+                            ),
+                          ),
                         ],
                       ),
-                      ElevatedButton.icon(
-                        onPressed: () {},
-                        icon: const Icon(Icons.add_rounded, size: 18),
-                        label: const Text('New Quotation'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.primary,
-                          foregroundColor: AppColors.textOnPrimary,
-                          elevation: 0,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: AppSpacing.lg,
-                            vertical: AppSpacing.md,
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          OutlinedButton.icon(
+                            onPressed: () => _handleExport(context),
+                            style: OutlinedButton.styleFrom(
+                              side: const BorderSide(color: AppColors.border),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 20, vertical: 14),
+                              shape: RoundedRectangleBorder(
+                                borderRadius:
+                                    BorderRadius.circular(AppBorderRadius.md),
+                              ),
+                            ),
+                            icon: const Icon(Icons.download_rounded,
+                                size: 18, color: AppColors.textPrimary),
+                            label: Text('Export',
+                                style: AppTextStyles.labelLarge
+                                    .copyWith(color: AppColors.textPrimary)),
                           ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(AppBorderRadius.button),
+                          const SizedBox(width: AppSpacing.md),
+                          ElevatedButton.icon(
+                            onPressed: () {},
+                            icon: const Icon(Icons.add_rounded, size: 18),
+                            label: const Text('New Quotation'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppColors.primary,
+                              foregroundColor: AppColors.textOnPrimary,
+                              elevation: 0,
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: AppSpacing.xl, vertical: AppSpacing.md),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(AppBorderRadius.md),
+                              ),
+                            ),
                           ),
-                        ),
+                        ],
                       ),
                     ],
                   ),

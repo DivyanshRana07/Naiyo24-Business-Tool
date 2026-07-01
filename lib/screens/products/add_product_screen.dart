@@ -58,14 +58,47 @@ class _AddProductScreenState extends ConsumerState<AddProductScreen> {
     super.dispose();
   }
 
+  Future<bool> _onWillPop() async {
+    final hasInput = _nameCtrl.text.isNotEmpty ||
+        _codeCtrl.text.isNotEmpty ||
+        _purchasePriceCtrl.text.isNotEmpty ||
+        _sellingPriceCtrl.text.isNotEmpty ||
+        _stockCtrl.text.isNotEmpty ||
+        (_gstCtrl.text.isNotEmpty && _gstCtrl.text != '12');
+
+    if (!hasInput) return true;
+
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Discard Changes?', style: AppTextStyles.h2),
+        content: Text('You have unsaved changes. Are you sure you want to discard them?', style: AppTextStyles.bodyMedium),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text('Cancel', style: AppTextStyles.labelLarge.copyWith(color: AppColors.textSecondary)),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            style: FilledButton.styleFrom(backgroundColor: AppColors.error),
+            child: Text('Discard', style: AppTextStyles.labelLarge.copyWith(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+    return confirm ?? false;
+  }
+
   @override
   Widget build(BuildContext context) {
     final authState = ref.watch(authNotifierProvider);
     final isMedium  = MediaQuery.of(context).size.width >= 900;
 
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: DashboardAppBar(email: authState.userEmail),
+    return WillPopScope(
+      onWillPop: _onWillPop,
+      child: Scaffold(
+        backgroundColor: AppColors.background,
+      appBar: DashboardAppBar(email: authState.userEmail, showBackButton: true),
       drawer: !isMedium
           ? Drawer(
               child: SideNavigation(
@@ -340,7 +373,13 @@ class _AddProductScreenState extends ConsumerState<AddProductScreen> {
                                 children: [
                                   Expanded(
                                     child: OutlinedButton(
-                                      onPressed: () => context.pop(),
+                                      onPressed: () {
+                                         if (context.canPop()) {
+                                           context.pop();
+                                         } else {
+                                           context.go(AppRoutes.products);
+                                         }
+                                       },
                                       style: OutlinedButton.styleFrom(
                                         minimumSize:
                                             const Size(double.infinity, 48),
@@ -408,7 +447,7 @@ class _AddProductScreenState extends ConsumerState<AddProductScreen> {
           ),
         ],
       ),
-    );
+    ),);
   }
 
   // ── Save ────────────────────────────────────────────────────────────────────
@@ -443,7 +482,11 @@ class _AddProductScreenState extends ConsumerState<AddProductScreen> {
     );
 
     // Go back to wherever the user came from (e.g. Create Invoice)
-    context.pop();
+    if (context.canPop()) {
+      context.pop();
+    } else {
+      context.go(AppRoutes.products);
+    }
   }
 
   // ── Helpers ─────────────────────────────────────────────────────────────────
@@ -458,7 +501,13 @@ class _AddProductScreenState extends ConsumerState<AddProductScreen> {
     return Row(
       children: [
         GestureDetector(
-          onTap: () => context.pop(),
+          onTap: () {
+            if (context.canPop()) {
+              context.pop();
+            } else {
+              context.go(AppRoutes.products);
+            }
+          },
           child: Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(

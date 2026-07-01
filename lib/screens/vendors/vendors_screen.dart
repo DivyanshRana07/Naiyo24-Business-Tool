@@ -8,6 +8,7 @@ import '../../theme/theme.dart';
 import '../../routes/app_routes.dart';
 import '../../widgets/dashboard_app_bar.dart';
 import '../../widgets/side_navigation.dart';
+import '../../widgets/export_dialog.dart';
 import 'widgets/vendor_form_dialog.dart';
 
 class VendorsScreen extends ConsumerWidget {
@@ -16,6 +17,37 @@ class VendorsScreen extends ConsumerWidget {
   void _logout(WidgetRef ref, BuildContext context) {
     ref.read(authNotifierProvider.notifier).logout();
     context.go(AppRoutes.login);
+  }
+
+  void _handleExport(BuildContext context, List<dynamic> vendors) {
+    final csvContent = [
+      'Vendor Code,Name,Email,Phone,Address',
+      ...vendors.map((v) => '${v.code},"${v.name}","${v.email}","${v.phone}","${v.address ?? ""}"')
+    ].join('\n');
+
+    final waContent = [
+      '*Naiyo24 Vendors Export*',
+      'Total Vendors: ${vendors.length}',
+      ...vendors.map((v) => '- ${v.code} | ${v.name} | ${v.phone}')
+    ].join('\n');
+
+    final pdfContent = [
+      'Naiyo24 Business Tool - Vendors Directory',
+      '==========================================',
+      'Code\tName\tEmail\tPhone',
+      ...vendors.map((v) => '${v.code}\t${v.name}\t${v.email}\t${v.phone}')
+    ].join('\n');
+
+    showDialog(
+      context: context,
+      builder: (_) => ExportOptionsDialog(
+        title: 'Vendors',
+        csvContent: csvContent,
+        whatsappText: waContent,
+        pdfContent: pdfContent,
+        filenamePrefix: 'vendors',
+      ),
+    );
   }
 
   @override
@@ -50,34 +82,79 @@ class VendorsScreen extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  Wrap(
+                    alignment: WrapAlignment.spaceBetween,
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    spacing: AppSpacing.md,
+                    runSpacing: AppSpacing.md,
                     children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
                         children: [
-                          Text('Manage Vendors', style: AppTextStyles.h1),
-                          const SizedBox(height: 4),
-                          Text('Manage your vendor list for purchase orders and expenses.', style: AppTextStyles.bodyMedium),
+                          InkWell(
+                            onTap: () => context.go(AppRoutes.dashboard),
+                            borderRadius: BorderRadius.circular(AppBorderRadius.sm),
+                            child: Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: AppColors.surfaceVariant,
+                                borderRadius: BorderRadius.circular(AppBorderRadius.sm),
+                              ),
+                              child: const Icon(Icons.arrow_back_rounded,
+                                  size: 20, color: AppColors.textSecondary),
+                            ),
+                          ),
+                          const SizedBox(width: AppSpacing.md),
+                          const Icon(Icons.store_rounded,
+                              color: AppColors.primary, size: 28),
+                          const SizedBox(width: AppSpacing.sm),
+                          Flexible(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text('Manage Vendors', style: AppTextStyles.h1),
+                                const SizedBox(height: 4),
+                                Text('Manage your vendor list for purchase orders and expenses.', style: AppTextStyles.bodyMedium),
+                              ],
+                            ),
+                          ),
                         ],
                       ),
-                      FilledButton.icon(
-                        onPressed: () {
-                          showDialog(
-                            context: context,
-                            builder: (_) => const VendorFormDialog(),
-                          );
-                        },
-                        icon: const Icon(Icons.add_rounded, size: 18),
-                        label: const Text('Add New Vendor'),
-                        style: FilledButton.styleFrom(
-                          backgroundColor: AppColors.primary,
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.md),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(AppBorderRadius.md),
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          OutlinedButton.icon(
+                            onPressed: () => _handleExport(context, vendors),
+                            style: OutlinedButton.styleFrom(
+                              side: const BorderSide(color: AppColors.border),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 20, vertical: 14),
+                              shape: RoundedRectangleBorder(
+                                borderRadius:
+                                    BorderRadius.circular(AppBorderRadius.md),
+                              ),
+                            ),
+                            icon: const Icon(Icons.download_rounded,
+                                size: 18, color: AppColors.textPrimary),
+                            label: Text('Export',
+                                style: AppTextStyles.labelLarge
+                                    .copyWith(color: AppColors.textPrimary)),
                           ),
-                        ),
+                          const SizedBox(width: AppSpacing.md),
+                          FilledButton.icon(
+                            onPressed: () => context.push(AppRoutes.newVendor),
+                            icon: const Icon(Icons.add_rounded, size: 18),
+                            label: const Text('Add New Vendor'),
+                            style: FilledButton.styleFrom(
+                              backgroundColor: AppColors.primary,
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.md),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(AppBorderRadius.md),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),

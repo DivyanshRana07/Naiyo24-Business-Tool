@@ -8,6 +8,7 @@ import '../../models/invoice_model.dart';
 import '../../notifiers/auth_notifier.dart';
 import '../../notifiers/invoice_notifier.dart';
 import '../../notifiers/product_notifier.dart';
+import '../../routes/app_routes.dart';
 
 import '../../theme/theme.dart';
 import '../../widgets/dashboard_app_bar.dart';
@@ -74,14 +75,14 @@ class _ReturnItemsScreenState extends ConsumerState<ReturnItemsScreen> {
     if (!_isLoaded) {
       return Scaffold(
         backgroundColor: AppColors.background,
-        appBar: DashboardAppBar(email: ref.read(authNotifierProvider).userEmail),
+        appBar: DashboardAppBar(email: ref.read(authNotifierProvider).userEmail, showBackButton: true),
         body: const Center(child: CircularProgressIndicator()),
       );
     }
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: DashboardAppBar(email: ref.read(authNotifierProvider).userEmail),
+      appBar: DashboardAppBar(email: ref.read(authNotifierProvider).userEmail, showBackButton: true),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(AppSpacing.xl),
         child: Center(
@@ -109,7 +110,13 @@ class _ReturnItemsScreenState extends ConsumerState<ReturnItemsScreen> {
     return Row(
       children: [
         InkWell(
-          onTap: () => context.pop(),
+          onTap: () {
+            if (context.canPop()) {
+              context.pop();
+            } else {
+              context.go(AppRoutes.invoiceDetailPath(widget.invoiceId));
+            }
+          },
           borderRadius: BorderRadius.circular(AppBorderRadius.sm),
           child: Container(
             padding: const EdgeInsets.all(8),
@@ -358,6 +365,10 @@ class _ReturnItemsScreenState extends ConsumerState<ReturnItemsScreen> {
       ),
     );
 
-    context.pop();
+    if (context.canPop()) {
+      context.pop();
+    } else {
+      context.go(AppRoutes.invoiceDetailPath(widget.invoiceId));
+    }
   }
 }

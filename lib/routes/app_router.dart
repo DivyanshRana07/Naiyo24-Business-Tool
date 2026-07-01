@@ -21,6 +21,7 @@ import '../screens/invoices/invoice_detail_screen.dart' deferred as invoice_deta
 import '../screens/invoices/return_items_screen.dart' deferred as return_items_screen;
 import '../screens/reports/reports_screen.dart' deferred as reports;
 import '../screens/vendors/vendors_screen.dart' deferred as vendors;
+import '../screens/vendors/add_vendor_screen.dart' deferred as add_vendor_screen;
 import '../screens/purchases/purchase_orders_screen.dart' deferred as purchase_orders;
 import '../screens/purchases/create_purchase_order_screen.dart' deferred as create_purchase_order;
 import 'app_routes.dart';
@@ -176,6 +177,8 @@ GoRouter appRouter(Ref ref) {
 
       // The screens below will be implemented in later modules.
       // They use DashboardScreen as a placeholder until dedicated screens exist.
+
+      // ── Invoices (with nested sub-routes) ───────────────────────────────────
       GoRoute(
         path: AppRoutes.invoices,
         name: 'invoices',
@@ -187,7 +190,57 @@ GoRouter appRouter(Ref ref) {
           ),
           transitionsBuilder: _fadeTransition,
         ),
+        routes: [
+          GoRoute(
+            path: 'new',
+            name: 'new-invoice',
+            pageBuilder: (context, state) => CustomTransitionPage(
+              key: state.pageKey,
+              child: DeferredWidget(
+                load: create_invoice_screen.loadLibrary,
+                builder: (context) => create_invoice_screen.CreateInvoiceScreen(),
+              ),
+              transitionsBuilder: _slideTransition,
+            ),
+          ),
+          GoRoute(
+            path: ':id',
+            name: 'invoice-detail',
+            pageBuilder: (context, state) {
+              final invoiceId = state.pathParameters['id'] ?? '';
+              return CustomTransitionPage(
+                key: state.pageKey,
+                child: DeferredWidget(
+                  load: invoice_detail_screen.loadLibrary,
+                  builder: (context) =>
+                      invoice_detail_screen.InvoiceDetailScreen(invoiceId: invoiceId),
+                ),
+                transitionsBuilder: _slideTransition,
+              );
+            },
+            routes: [
+              GoRoute(
+                path: 'return',
+                name: 'return-items',
+                pageBuilder: (context, state) {
+                  final invoiceId = state.pathParameters['id'] ?? '';
+                  return CustomTransitionPage(
+                    key: state.pageKey,
+                    child: DeferredWidget(
+                      load: return_items_screen.loadLibrary,
+                      builder: (context) =>
+                          return_items_screen.ReturnItemsScreen(invoiceId: invoiceId),
+                    ),
+                    transitionsBuilder: _slideTransition,
+                  );
+                },
+              ),
+            ],
+          ),
+        ],
       ),
+
+      // ── Quotations (with nested sub-routes) ─────────────────────────────────
       GoRoute(
         path: AppRoutes.quotations,
         name: 'quotations',
@@ -199,7 +252,20 @@ GoRouter appRouter(Ref ref) {
           ),
           transitionsBuilder: _fadeTransition,
         ),
+        routes: [
+          GoRoute(
+            path: 'new',
+            name: 'new-quotation',
+            pageBuilder: (context, state) => CustomTransitionPage(
+              key: state.pageKey,
+              child: const _PlaceholderScreen(title: 'New Quotation'),
+              transitionsBuilder: _slideTransition,
+            ),
+          ),
+        ],
       ),
+
+      // ── Purchase Orders (with nested sub-routes) ─────────────────────────────
       GoRoute(
         path: AppRoutes.purchaseOrders,
         name: 'purchase-orders',
@@ -211,7 +277,23 @@ GoRouter appRouter(Ref ref) {
           ),
           transitionsBuilder: _fadeTransition,
         ),
+        routes: [
+          GoRoute(
+            path: 'new',
+            name: 'new-purchase-order',
+            pageBuilder: (context, state) => CustomTransitionPage(
+              key: state.pageKey,
+              child: DeferredWidget(
+                load: create_purchase_order.loadLibrary,
+                builder: (context) => create_purchase_order.CreatePurchaseOrderScreen(),
+              ),
+              transitionsBuilder: _slideTransition,
+            ),
+          ),
+        ],
       ),
+
+      // ── Vendors ─────────────────────────────────────────────────────────────
       GoRoute(
         path: AppRoutes.vendors,
         name: 'vendors',
@@ -223,7 +305,23 @@ GoRouter appRouter(Ref ref) {
           ),
           transitionsBuilder: _fadeTransition,
         ),
+        routes: [
+          GoRoute(
+            path: 'new',
+            name: 'new-vendor',
+            pageBuilder: (context, state) => CustomTransitionPage(
+              key: state.pageKey,
+              child: DeferredWidget(
+                load: add_vendor_screen.loadLibrary,
+                builder: (context) => add_vendor_screen.AddVendorScreen(),
+              ),
+              transitionsBuilder: _slideTransition,
+            ),
+          ),
+        ],
       ),
+
+      // ── Clients (with nested sub-routes) ────────────────────────────────────
       GoRoute(
         path: AppRoutes.clients,
         name: 'clients',
@@ -235,7 +333,23 @@ GoRouter appRouter(Ref ref) {
           ),
           transitionsBuilder: _fadeTransition,
         ),
+        routes: [
+          GoRoute(
+            path: 'new',
+            name: 'new-client',
+            pageBuilder: (context, state) => CustomTransitionPage(
+              key: state.pageKey,
+              child: DeferredWidget(
+                load: add_client_screen.loadLibrary,
+                builder: (context) => add_client_screen.AddClientScreen(),
+              ),
+              transitionsBuilder: _slideTransition,
+            ),
+          ),
+        ],
       ),
+
+      // ── Products (with nested sub-routes) ───────────────────────────────────
       GoRoute(
         path: AppRoutes.products,
         name: 'products',
@@ -247,7 +361,23 @@ GoRouter appRouter(Ref ref) {
           ),
           transitionsBuilder: _fadeTransition,
         ),
+        routes: [
+          GoRoute(
+            path: 'new',
+            name: 'new-product',
+            pageBuilder: (context, state) => CustomTransitionPage(
+              key: state.pageKey,
+              child: DeferredWidget(
+                load: add_product_screen.loadLibrary,
+                builder: (context) => add_product_screen.AddProductScreen(),
+              ),
+              transitionsBuilder: _slideTransition,
+            ),
+          ),
+        ],
       ),
+
+      // ── History / Reports ────────────────────────────────────────────────────
       GoRoute(
         path: AppRoutes.reports,
         name: 'reports',
@@ -260,6 +390,8 @@ GoRouter appRouter(Ref ref) {
           transitionsBuilder: _fadeTransition,
         ),
       ),
+
+      // ── Settings ────────────────────────────────────────────────────────────
       GoRoute(
         path: AppRoutes.settings,
         name: 'settings',
@@ -272,73 +404,8 @@ GoRouter appRouter(Ref ref) {
           transitionsBuilder: _fadeTransition,
         ),
       ),
-      GoRoute(
-        path: AppRoutes.newInvoice,
-        name: 'new-invoice',
-        pageBuilder: (context, state) => CustomTransitionPage(
-          key: state.pageKey,
-          child: DeferredWidget(
-            load: create_invoice_screen.loadLibrary,
-            builder: (context) => create_invoice_screen.CreateInvoiceScreen(),
-          ),
-          transitionsBuilder: _fadeTransition,
-        ),
-      ),
-      GoRoute(
-        path: AppRoutes.invoiceDetail,
-        name: 'invoice-detail',
-        pageBuilder: (context, state) {
-          final invoiceId = state.pathParameters['id'] ?? '';
-          return CustomTransitionPage(
-            key: state.pageKey,
-            child: DeferredWidget(
-              load: invoice_detail_screen.loadLibrary,
-              builder: (context) =>
-                  invoice_detail_screen.InvoiceDetailScreen(
-                      invoiceId: invoiceId),
-            ),
-            transitionsBuilder: _fadeTransition,
-          );
-        },
-      ),
-      GoRoute(
-        path: AppRoutes.returnItems,
-        name: 'return-items',
-        pageBuilder: (context, state) {
-          final invoiceId = state.pathParameters['id'] ?? '';
-          return CustomTransitionPage(
-            key: state.pageKey,
-            child: DeferredWidget(
-              load: return_items_screen.loadLibrary,
-              builder: (context) =>
-                  return_items_screen.ReturnItemsScreen(
-                      invoiceId: invoiceId),
-            ),
-            transitionsBuilder: _fadeTransition,
-          );
-        },
-      ),
-      GoRoute(
-        path: AppRoutes.newQuotation,
-        name: 'new-quotation',
-        pageBuilder: (context, state) => CustomTransitionPage(
-          key: state.pageKey,
-          child: const _PlaceholderScreen(title: 'New Quotation'),
-          transitionsBuilder: _fadeTransition,
-        ),
-      ),
-      GoRoute(
-        path: AppRoutes.newProduct,
-        name: 'new-product',
-        pageBuilder: (context, state) => CustomTransitionPage(
-          key: state.pageKey,
-          child: DeferredWidget(
-            load: add_product_screen.loadLibrary,
-            builder: (context) => add_product_screen.AddProductScreen(),
-          ),
-          transitionsBuilder: _fadeTransition,
-        ),
-      ),
+
+      // ── Misc placeholder routes ──────────────────────────────────────────────
       GoRoute(
         path: AppRoutes.sendReminder,
         name: 'send-reminder',
@@ -354,30 +421,6 @@ GoRouter appRouter(Ref ref) {
         pageBuilder: (context, state) => CustomTransitionPage(
           key: state.pageKey,
           child: const _PlaceholderScreen(title: 'Expenses'),
-          transitionsBuilder: _fadeTransition,
-        ),
-      ),
-      GoRoute(
-        path: AppRoutes.newPurchaseOrder,
-        name: 'new-purchase-order',
-        pageBuilder: (context, state) => CustomTransitionPage(
-          key: state.pageKey,
-          child: DeferredWidget(
-            load: create_purchase_order.loadLibrary,
-            builder: (context) => create_purchase_order.CreatePurchaseOrderScreen(),
-          ),
-          transitionsBuilder: _fadeTransition,
-        ),
-      ),
-      GoRoute(
-        path: AppRoutes.newClient,
-        name: 'new-client',
-        pageBuilder: (context, state) => CustomTransitionPage(
-          key: state.pageKey,
-          child: DeferredWidget(
-            load: add_client_screen.loadLibrary,
-            builder: (context) => add_client_screen.AddClientScreen(),
-          ),
           transitionsBuilder: _fadeTransition,
         ),
       ),
@@ -439,6 +482,22 @@ Widget _fadeTransition(
 ) {
   return FadeTransition(
     opacity: CurvedAnimation(parent: animation, curve: Curves.easeInOut),
+    child: child,
+  );
+}
+
+/// Slide-from-right transition used for push (drill-down) navigation.
+Widget _slideTransition(
+  BuildContext context,
+  Animation<double> animation,
+  Animation<double> secondaryAnimation,
+  Widget child,
+) {
+  return SlideTransition(
+    position: Tween<Offset>(
+      begin: const Offset(1.0, 0.0),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(parent: animation, curve: Curves.easeOut)),
     child: child,
   );
 }

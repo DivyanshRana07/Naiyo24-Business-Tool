@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../notifiers/auth_notifier.dart';
 import '../../notifiers/product_notifier.dart';
@@ -12,6 +13,7 @@ import '../../widgets/side_navigation.dart';
 import '../../widgets/dashboard_app_bar.dart';
 import 'widgets/product_form_dialog.dart';
 import 'widgets/service_form_dialog.dart';
+import '../../widgets/export_dialog.dart';
 
 /// Products & Services management screen.
 /// Uses a [TabBar] to switch between the Product list and Service list.
@@ -43,9 +45,73 @@ class _ProductsScreenState extends ConsumerState<ProductsScreen>
     super.dispose();
   }
 
+  void _handleExportProducts(BuildContext context, List<ProductModel> products) {
+    final csvContent = [
+      'Product Code,Name,Unit,Sale Price,Purchase Price,Opening Stock,Status',
+      ...products.map((p) => '${p.code},"${p.name}","${p.unit}",${p.sellingPrice},${p.purchasePrice},${p.stockQty},${p.status.name}')
+    ].join('\n');
+
+    final waContent = [
+      '*Naiyo24 Products Export*',
+      'Total Products: ${products.length}',
+      ...products.map((p) => '- ${p.code} | ${p.name} | Sale: ₹${p.sellingPrice} | Stock: ${p.stockQty}')
+    ].join('\n');
+
+    final pdfContent = [
+      'Naiyo24 Business Tool - Products Directory',
+      '==========================================',
+      'Code\tName\tUnit\tSale Price\tStock',
+      ...products.map((p) => '${p.code}\t${p.name}\t${p.unit}\t₹${p.sellingPrice}\t${p.stockQty}')
+    ].join('\n');
+
+    showDialog(
+      context: context,
+      builder: (_) => ExportOptionsDialog(
+        title: 'Products',
+        csvContent: csvContent,
+        whatsappText: waContent,
+        pdfContent: pdfContent,
+        filenamePrefix: 'products',
+      ),
+    );
+  }
+
+  void _handleExportServices(BuildContext context, List<ServiceModel> services) {
+    final csvContent = [
+      'Service Code,Name,Sales Price,GST Percent,Status',
+      ...services.map((s) => '${s.code},"${s.name}",${s.sellingPrice},${s.gstPercent},${s.status.name}')
+    ].join('\n');
+
+    final waContent = [
+      '*Naiyo24 Services Export*',
+      'Total Services: ${services.length}',
+      ...services.map((s) => '- ${s.code} | ${s.name} | Price: ₹${s.sellingPrice}')
+    ].join('\n');
+
+    final pdfContent = [
+      'Naiyo24 Business Tool - Services Directory',
+      '==========================================',
+      'Code\tName\tPrice\tGST %',
+      ...services.map((s) => '${s.code}\t${s.name}\t₹${s.sellingPrice}\t${s.gstPercent}%')
+    ].join('\n');
+
+    showDialog(
+      context: context,
+      builder: (_) => ExportOptionsDialog(
+        title: 'Services',
+        csvContent: csvContent,
+        whatsappText: waContent,
+        pdfContent: pdfContent,
+        filenamePrefix: 'services',
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final authState = ref.watch(authNotifierProvider);
+    final products = ref.watch(productNotifierProvider);
+    final services = ref.watch(serviceNotifierProvider);
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -84,23 +150,75 @@ class _ProductsScreenState extends ConsumerState<ProductsScreen>
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Row(
+                      Wrap(
+                        alignment: WrapAlignment.spaceBetween,
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        spacing: AppSpacing.md,
+                        runSpacing: AppSpacing.md,
                         children: [
-                          const Icon(Icons.inventory_2_rounded,
-                              color: AppColors.primary, size: 28),
-                          const SizedBox(width: AppSpacing.sm),
-                          Text('Inventory', style: AppTextStyles.h1),
-                          const Spacer(),
-                          // FAB-style button for active tab
-                          _tabController.index == 0
-                              ? _AddButton(
-                                  label: 'Add New Product',
-                                  onTap: () => _showProductDialog(),
-                                )
-                              : _AddButton(
-                                  label: 'Add New Service',
-                                  onTap: () => _showServiceDialog(),
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              InkWell(
+                                onTap: () => context.go(AppRoutes.dashboard),
+                                borderRadius: BorderRadius.circular(AppBorderRadius.sm),
+                                child: Container(
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.surfaceVariant,
+                                    borderRadius: BorderRadius.circular(AppBorderRadius.sm),
+                                  ),
+                                  child: const Icon(Icons.arrow_back_rounded,
+                                      size: 20, color: AppColors.textSecondary),
                                 ),
+                              ),
+                              const SizedBox(width: AppSpacing.md),
+                              const Icon(Icons.inventory_2_rounded,
+                                  color: AppColors.primary, size: 28),
+                              const SizedBox(width: AppSpacing.sm),
+                              Flexible(
+                                child: Text('Inventory', style: AppTextStyles.h1),
+                              ),
+                            ],
+                          ),
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              OutlinedButton.icon(
+                                onPressed: () {
+                                  if (_tabController.index == 0) {
+                                    _handleExportProducts(context, products);
+                                  } else {
+                                    _handleExportServices(context, services);
+                                  }
+                                },
+                                style: OutlinedButton.styleFrom(
+                                  side: const BorderSide(color: AppColors.border),
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 20, vertical: 12),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius:
+                                        BorderRadius.circular(AppBorderRadius.md),
+                                  ),
+                                ),
+                                icon: const Icon(Icons.download_rounded,
+                                    size: 18, color: AppColors.textPrimary),
+                                label: Text('Export',
+                                    style: AppTextStyles.labelLarge
+                                        .copyWith(color: AppColors.textPrimary)),
+                              ),
+                              const SizedBox(width: AppSpacing.md),
+                              _tabController.index == 0
+                                  ? _AddButton(
+                                      label: 'Add New Product',
+                                      onTap: () => context.push(AppRoutes.newProduct),
+                                    )
+                                  : _AddButton(
+                                      label: 'Add New Service',
+                                      onTap: () => _showServiceDialog(),
+                                    ),
+                            ],
+                          ),
                         ],
                       ),
                       const SizedBox(height: AppSpacing.lg),
