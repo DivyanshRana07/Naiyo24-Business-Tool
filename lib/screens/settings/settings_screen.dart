@@ -360,16 +360,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         const SizedBox(height: AppSpacing.xxl),
         Align(
           alignment: Alignment.centerRight,
-          child: SizedBox(
-            width: 150,
-            child: CustomButton(
-              label: 'Save Tax Settings',
-              onPressed: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Tax settings updated successfully!')),
-                );
-              },
-            ),
+          child: CustomButton(
+            label: 'Save Tax Settings',
+            onPressed: () {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Tax settings updated successfully!')),
+              );
+            },
           ),
         ),
       ],
@@ -380,9 +377,30 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Integrations', style: AppTextStyles.h2),
-        const SizedBox(height: AppSpacing.sm),
-        Text('Connect your business tool with external services to automate workflows.', style: AppTextStyles.bodyMedium),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(AppSpacing.md),
+              decoration: BoxDecoration(
+                color: AppColors.primary.withValues(alpha: 0.05),
+                borderRadius: BorderRadius.circular(AppBorderRadius.md),
+              ),
+              child: const Icon(Icons.chat_bubble_outline_rounded, color: AppColors.primary, size: 28),
+            ),
+            const SizedBox(width: AppSpacing.md),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Integrations', style: AppTextStyles.h2),
+                  const SizedBox(height: AppSpacing.xs),
+                  Text('Connect your business tool with external services to automate workflows.', style: AppTextStyles.bodyMedium),
+                ],
+              ),
+            ),
+          ],
+        ),
         const SizedBox(height: AppSpacing.xl),
         _buildIntegrationTile(
           title: 'WhatsApp Business',

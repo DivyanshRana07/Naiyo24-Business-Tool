@@ -317,6 +317,7 @@ class _GettingStartedGrid extends StatelessWidget {
           'Create professional GST invoices, track payment status, send reminders to clients, and download PDFs instantly.',
       actionLabel: 'Create New Invoice',
       route: AppRoutes.newInvoice,
+      listRoute: AppRoutes.invoices,
     ),
     _BlockData(
       icon: Icons.description_rounded,
@@ -326,6 +327,7 @@ class _GettingStartedGrid extends StatelessWidget {
           'Send accurate estimates to clients and convert approved quotations into invoices with a single click.',
       actionLabel: 'Create New Quotation',
       route: AppRoutes.newQuotation,
+      listRoute: AppRoutes.quotations,
     ),
     _BlockData(
       icon: Icons.account_balance_wallet_rounded,
@@ -335,6 +337,7 @@ class _GettingStartedGrid extends StatelessWidget {
           'Record purchase orders, vendor bills, and day-to-day expenses to keep your books accurate and up to date.',
       actionLabel: 'Record New Purchase',
       route: AppRoutes.newExpense,
+      listRoute: AppRoutes.expenses,
     ),
     _BlockData(
       icon: Icons.people_rounded,
@@ -344,6 +347,7 @@ class _GettingStartedGrid extends StatelessWidget {
           'Maintain a full client directory with contact details, billing history, and outstanding balance tracking.',
       actionLabel: 'Add New Client',
       route: AppRoutes.newClient,
+      listRoute: AppRoutes.clients,
     ),
     _BlockData(
       icon: Icons.leaderboard_rounded,
@@ -353,6 +357,7 @@ class _GettingStartedGrid extends StatelessWidget {
           'Capture and nurture prospective clients through a simple pipeline. Convert leads to active clients seamlessly.',
       actionLabel: 'Add New Lead',
       route: AppRoutes.newLead,
+      listRoute: AppRoutes.leads,
     ),
   ];
 
@@ -382,6 +387,7 @@ class _GettingStartedGrid extends StatelessWidget {
               description: b.description,
               actionLabel: b.actionLabel,
               onAction: () => context.go(b.route),
+              onCardTap: () => context.go(b.listRoute),
             );
           },
         ),
@@ -399,6 +405,7 @@ class _BlockData {
     required this.description,
     required this.actionLabel,
     required this.route,
+    required this.listRoute,
   });
 
   final IconData icon;
@@ -407,6 +414,7 @@ class _BlockData {
   final String description;
   final String actionLabel;
   final String route;
+  final String listRoute;
 }
 
 // ─── Recent Activity ──────────────────────────────────────────────────────────
