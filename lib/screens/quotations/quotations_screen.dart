@@ -1,82 +1,164 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 
 import '../../routes/app_routes.dart';
 import '../../theme/theme.dart';
+import '../../models/quotation_model.dart';
 import '../../notifiers/auth_notifier.dart';
+import '../../notifiers/quotation_notifier.dart';
 import '../../widgets/dashboard_app_bar.dart';
 import '../../widgets/side_navigation.dart';
 import '../../widgets/export_dialog.dart';
+import '../../widgets/send_options_dialog.dart';
 
-class QuotationsScreen extends ConsumerWidget {
+class QuotationsScreen extends ConsumerStatefulWidget {
   const QuotationsScreen({super.key});
 
-  static const List<Map<String, dynamic>> _quotationsData = [
-    {
-      'id': 'QTN-2026-001',
-      'client': 'Acme Corp',
-      'date': '28 Jun 2026',
-      'amount': '₹15,000',
-      'status': 'Accepted',
-      'statusColor': AppColors.success,
-    },
-    {
-      'id': 'QTN-2026-002',
-      'client': 'TechSolutions Ltd',
-      'date': '25 Jun 2026',
-      'amount': '₹50,000',
-      'status': 'Accepted',
-      'statusColor': AppColors.success,
-    },
-    {
-      'id': 'QTN-2026-003',
-      'client': 'StartupXYZ',
-      'date': '20 Jun 2026',
-      'amount': '₹9,500',
-      'status': 'Declined',
-      'statusColor': AppColors.error,
-    },
-    {
-      'id': 'QTN-2026-004',
-      'client': 'GlobalRetail Inc',
-      'date': '18 Jun 2026',
-      'amount': '₹35,000',
-      'status': 'Sent',
-      'statusColor': Color(0xFF06B6D4),
-    },
-    {
-      'id': 'QTN-2026-005',
-      'client': 'BetaCorp',
-      'date': '15 Jun 2026',
-      'amount': '₹20,000',
-      'status': 'Draft',
-      'statusColor': AppColors.textSecondary,
-    },
-  ];
+  @override
+  ConsumerState<QuotationsScreen> createState() => _QuotationsScreenState();
+}
 
-  void _logout(WidgetRef ref, BuildContext context) {
+class _QuotationsScreenState extends ConsumerState<QuotationsScreen> {
+  String _searchQuery = '';
+
+  void _logout(BuildContext context) {
     ref.read(authNotifierProvider.notifier).logout();
     context.go(AppRoutes.login);
   }
 
-  void _handleExport(BuildContext context) {
+  Color _getStatusColor(QuotationStatus status) {
+    switch (status) {
+      case QuotationStatus.accepted:
+        return AppColors.success;
+      case QuotationStatus.rejected:
+        return AppColors.error;
+      case QuotationStatus.sent:
+        return const Color(0xFF06B6D4);
+      case QuotationStatus.viewed:
+        return const Color(0xFF8B5CF6); // Purple
+      case QuotationStatus.expired:
+        return const Color(0xFFF59E0B); // Orange/Amber
+      case QuotationStatus.draft:
+      default:
+        return AppColors.textSecondary;
+    }
+  }
+
+  String _getStatusLabel(QuotationStatus status) {
+    switch (status) {
+      case QuotationStatus.accepted:
+        return 'Accepted';
+      case QuotationStatus.rejected:
+        return 'Rejected';
+      case QuotationStatus.sent:
+        return 'Sent';
+      case QuotationStatus.viewed:
+        return 'Viewed';
+      case QuotationStatus.expired:
+        return 'Expired';
+      case QuotationStatus.draft:
+      default:
+        return 'Draft';
+    }
+  }
+
+  void _showSendOptionsDialog(BuildContext context, QuotationModel quotation) {
+    final formatCurrency = NumberFormat.currency(locale: 'en_IN', symbol: '₹');
+    final formatDate = DateFormat('dd MMM yyyy');
+    
+    final waContent = [
+      '*Naiyo24 Quotation*',
+      'Quotation No: ${quotation.quotationNo}',
+      'Client: ${quotation.customerName}',
+      'Amount: ${formatCurrency.format(quotation.grandTotal)}',
+    ].join('\n');
+
+    final pdfContent = [
+      'Naiyo24 Business Tool - Quotation',
+      '========================================',
+      'Quotation No: ${quotation.quotationNo}',
+      'Client: ${quotation.customerName}',
+      'Date: ${formatDate.format(quotation.quotationDate)}',
+      'Amount: ${formatCurrency.format(quotation.grandTotal)}',
+    ].join('\n');
+
+    showDialog(
+      context: context,
+      builder: (_) => SendOptionsDialog(
+        title: 'Quotation',
+        whatsappText: waContent,
+        pdfContent: pdfContent,
+        filenamePrefix: 'quotation_${quotation.quotationNo}',
+        onClose: () {},
+      ),
+    );
+  }
+
+  void _showStatusUpdateDialog(BuildContext context, QuotationModel quotation) {
+    showDialog(
+      context: context,
+      builder: (ctx) {
+        return SimpleDialog(
+          title: Text('Update Status', style: AppTextStyles.h2),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppBorderRadius.lg)),
+          backgroundColor: AppColors.surface,
+          children: QuotationStatus.values.map((status) {
+            final isSelected = quotation.status == status;
+            return SimpleDialogOption(
+              onPressed: () {
+                final updated = quotation.copyWith(status: status);
+                ref.read(quotationNotifierProvider.notifier).updateQuotation(updated);
+                Navigator.of(ctx).pop();
+              },
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8.0),
+                child: Row(
+                  children: [
+                    Icon(
+                      isSelected ? Icons.radio_button_checked : Icons.radio_button_off,
+                      color: isSelected ? AppColors.primary : AppColors.textSecondary,
+                      size: 20,
+                    ),
+                    const SizedBox(width: AppSpacing.md),
+                    Text(
+                      _getStatusLabel(status),
+                      style: AppTextStyles.bodyMedium.copyWith(
+                        fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                        color: isSelected ? AppColors.primary : AppColors.textPrimary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }).toList(),
+        );
+      },
+    );
+  }
+
+  void _handleExport(BuildContext context, List<QuotationModel> quotations) {
+    final formatCurrency = NumberFormat.currency(locale: 'en_IN', symbol: '₹');
+    final formatDate = DateFormat('dd MMM yyyy');
+
     final csvContent = [
       'Quotation No,Client,Date,Amount,Status',
-      ..._quotationsData.map((q) => '${q['id']},"${q['client']}",${q['date']},"${q['amount']}",${q['status']}')
+      ...quotations.map((q) => '${q.quotationNo},"${q.customerName}",${formatDate.format(q.quotationDate)},"${formatCurrency.format(q.grandTotal)}",${_getStatusLabel(q.status)}')
     ].join('\n');
 
     final waContent = [
       '*Naiyo24 Quotation Export*',
-      'Total Quotations: ${_quotationsData.length}',
-      ..._quotationsData.map((q) => '- ${q['id']} | ${q['client']} | ${q['amount']} (${q['status']})')
+      'Total Quotations: ${quotations.length}',
+      ...quotations.map((q) => '- ${q.quotationNo} | ${q.customerName} | ${formatCurrency.format(q.grandTotal)} (${_getStatusLabel(q.status)})')
     ].join('\n');
 
     final pdfContent = [
       'Naiyo24 Business Tool - Quotations Report',
       '========================================',
       'Quotation No\tClient\tDate\tAmount\tStatus',
-      ..._quotationsData.map((q) => '${q['id']}\t${q['client']}\t${q['date']}\t${q['amount']}\t${q['status']}')
+      ...quotations.map((q) => '${q.quotationNo}\t${q.customerName}\t${formatDate.format(q.quotationDate)}\t${formatCurrency.format(q.grandTotal)}\t${_getStatusLabel(q.status)}')
     ].join('\n');
 
     showDialog(
@@ -92,9 +174,16 @@ class QuotationsScreen extends ConsumerWidget {
   }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final authState = ref.watch(authNotifierProvider);
+    final allQuotations = ref.watch(quotationNotifierProvider);
     final isDesktop = MediaQuery.of(context).size.width >= 900;
+
+    final quotations = allQuotations.where((q) {
+      final query = _searchQuery.toLowerCase();
+      return q.customerName.toLowerCase().contains(query) ||
+             q.quotationNo.toLowerCase().contains(query);
+    }).toList();
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -103,7 +192,7 @@ class QuotationsScreen extends ConsumerWidget {
           ? Drawer(
               child: SideNavigation(
                 email: authState.userEmail,
-                onLogout: () => _logout(ref, context),
+                onLogout: () => _logout(context),
                 currentRoute: AppRoutes.quotations,
               ),
             )
@@ -113,7 +202,7 @@ class QuotationsScreen extends ConsumerWidget {
           if (isDesktop)
             SideNavigation(
               email: authState.userEmail,
-              onLogout: () => _logout(ref, context),
+              onLogout: () => _logout(context),
               currentRoute: AppRoutes.quotations,
             ),
           Expanded(
@@ -164,7 +253,7 @@ class QuotationsScreen extends ConsumerWidget {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           OutlinedButton.icon(
-                            onPressed: () => _handleExport(context),
+                            onPressed: () => _handleExport(context, quotations),
                             style: OutlinedButton.styleFrom(
                               side: const BorderSide(color: AppColors.border),
                               padding: const EdgeInsets.symmetric(
@@ -182,7 +271,7 @@ class QuotationsScreen extends ConsumerWidget {
                           ),
                           const SizedBox(width: AppSpacing.md),
                           ElevatedButton.icon(
-                            onPressed: () {},
+                            onPressed: () => context.push(AppRoutes.newQuotation),
                             icon: const Icon(Icons.add_rounded, size: 18),
                             label: const Text('New Quotation'),
                             style: ElevatedButton.styleFrom(
@@ -207,7 +296,7 @@ class QuotationsScreen extends ConsumerWidget {
                   const SizedBox(height: AppSpacing.lg),
 
                   // Quotations list / table
-                  _buildQuotationsTable(context),
+                  _buildQuotationsTable(context, quotations),
                 ],
               ),
             ),
@@ -219,49 +308,54 @@ class QuotationsScreen extends ConsumerWidget {
 
   Widget _buildFilterBar() {
     return Container(
-      padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(AppBorderRadius.lg),
-        border: Border.all(color: AppColors.border),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+        border: Border.all(color: AppColors.border.withValues(alpha: 0.5)),
       ),
       child: Row(
         children: [
           Expanded(
             child: TextField(
+              onChanged: (value) => setState(() => _searchQuery = value),
+              style: AppTextStyles.bodyMedium,
               decoration: InputDecoration(
                 hintText: 'Search by client name or quotation number...',
-                prefixIcon: const Icon(Icons.search_rounded, size: 20),
-                contentPadding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(AppBorderRadius.md),
-                  borderSide: const BorderSide(color: AppColors.border),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(AppBorderRadius.md),
-                  borderSide: const BorderSide(color: AppColors.border),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(AppBorderRadius.md),
-                  borderSide: const BorderSide(color: AppColors.primary),
-                ),
+                hintStyle: AppTextStyles.bodyMedium.copyWith(color: AppColors.textHint),
+                prefixIcon: const Icon(Icons.search_rounded, size: 22, color: AppColors.textSecondary),
+                contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+                border: InputBorder.none,
+                enabledBorder: InputBorder.none,
+                focusedBorder: InputBorder.none,
               ),
             ),
           ),
-          const SizedBox(width: AppSpacing.md),
-          OutlinedButton.icon(
-            onPressed: () {},
-            icon: const Icon(Icons.filter_list_rounded, size: 18),
-            label: const Text('Filter'),
-            style: OutlinedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppSpacing.lg,
-                vertical: AppSpacing.md,
+          Container(
+            height: 32,
+            width: 1,
+            color: AppColors.border,
+            margin: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
+          ),
+          Padding(
+            padding: const EdgeInsets.only(right: AppSpacing.sm),
+            child: TextButton.icon(
+              onPressed: () {},
+              icon: const Icon(Icons.filter_list_rounded, size: 20),
+              label: Text('Filter', style: AppTextStyles.labelLarge),
+              style: TextButton.styleFrom(
+                foregroundColor: AppColors.textSecondary,
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(AppBorderRadius.sm),
+                ),
               ),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(AppBorderRadius.button),
-              ),
-              side: const BorderSide(color: AppColors.border),
             ),
           ),
         ],
@@ -269,17 +363,24 @@ class QuotationsScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildQuotationsTable(BuildContext context) {
+  Widget _buildQuotationsTable(BuildContext context, List<QuotationModel> quotations) {
     final isDesktop = MediaQuery.of(context).size.width >= 700;
+    final formatCurrency = NumberFormat.currency(locale: 'en_IN', symbol: '₹');
+    final formatDate = DateFormat('dd MMM yyyy');
 
     if (!isDesktop) {
+      if (quotations.isEmpty) {
+        return _buildEmptyState();
+      }
       return ListView.separated(
         shrinkWrap: true,
         physics: const NeverScrollableScrollPhysics(),
-        itemCount: _quotationsData.length,
+        itemCount: quotations.length,
         separatorBuilder: (_, __) => const SizedBox(height: AppSpacing.md),
         itemBuilder: (_, i) {
-          final data = _quotationsData[i];
+          final q = quotations[i];
+          final statusLabel = _getStatusLabel(q.status);
+          final statusColor = _getStatusColor(q.status);
           return Container(
             padding: const EdgeInsets.all(AppSpacing.lg),
             decoration: BoxDecoration(
@@ -293,18 +394,18 @@ class QuotationsScreen extends ConsumerWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(data['id'] as String, style: AppTextStyles.labelLarge),
-                    _buildStatusBadge(data['status'] as String, data['statusColor'] as Color),
+                    Text(q.quotationNo, style: AppTextStyles.labelLarge),
+                    _buildStatusBadge(statusLabel, statusColor),
                   ],
                 ),
                 const SizedBox(height: AppSpacing.sm),
-                Text(data['client'] as String, style: AppTextStyles.h3),
+                Text(q.customerName, style: AppTextStyles.h3),
                 const SizedBox(height: AppSpacing.xs),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(data['date'] as String, style: AppTextStyles.bodyMedium),
-                    Text(data['amount'] as String, style: AppTextStyles.labelLarge),
+                    Text(formatDate.format(q.quotationDate), style: AppTextStyles.bodyMedium),
+                    Text(formatCurrency.format(q.grandTotal), style: AppTextStyles.labelLarge),
                   ],
                 ),
                 const SizedBox(height: AppSpacing.md),
@@ -323,6 +424,10 @@ class QuotationsScreen extends ConsumerWidget {
           );
         },
       );
+    }
+
+    if (quotations.isEmpty) {
+      return _buildEmptyState();
     }
 
     return Container(
@@ -360,18 +465,20 @@ class QuotationsScreen extends ConsumerWidget {
             ],
           ),
           // Table Rows
-          ..._quotationsData.map((data) {
+          ...quotations.map((q) {
+            final statusLabel = _getStatusLabel(q.status);
+            final statusColor = _getStatusColor(q.status);
             return TableRow(
               children: [
-                _buildCell(data['id'] as String, isBold: true),
-                _buildCell(data['client'] as String),
-                _buildCell(data['date'] as String),
-                _buildCell(data['amount'] as String),
+                _buildCell(q.quotationNo, isBold: true),
+                _buildCell(q.customerName),
+                _buildCell(formatDate.format(q.quotationDate)),
+                _buildCell(formatCurrency.format(q.grandTotal)),
                 Padding(
                   padding: const EdgeInsets.symmetric(vertical: AppSpacing.md, horizontal: AppSpacing.lg),
                   child: Align(
                     alignment: Alignment.centerLeft,
-                    child: _buildStatusBadge(data['status'] as String, data['statusColor'] as Color),
+                    child: _buildStatusBadge(statusLabel, statusColor),
                   ),
                 ),
                 Padding(
@@ -381,22 +488,19 @@ class QuotationsScreen extends ConsumerWidget {
                     children: [
                       IconButton(
                         icon: const Icon(Icons.edit_outlined, size: 18),
-                        onPressed: () {},
-                        tooltip: 'Edit',
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.transform_rounded, size: 18),
-                        onPressed: () {},
-                        tooltip: 'Convert to Invoice',
+                        onPressed: () => _showStatusUpdateDialog(context, q),
+                        tooltip: 'Change Status',
                       ),
                       IconButton(
                         icon: const Icon(Icons.send_rounded, size: 18),
-                        onPressed: () {},
+                        onPressed: () => _showSendOptionsDialog(context, q),
                         tooltip: 'Send Quotation',
                       ),
                       IconButton(
                         icon: const Icon(Icons.delete_outline_rounded, size: 18, color: AppColors.error),
-                        onPressed: () {},
+                        onPressed: () {
+                          ref.read(quotationNotifierProvider.notifier).deleteQuotation(q.id);
+                        },
                         tooltip: 'Delete',
                       ),
                     ],
@@ -405,6 +509,33 @@ class QuotationsScreen extends ConsumerWidget {
               ],
             );
           }),
+        ],
+      ),
+    );
+  }
+  
+  Widget _buildEmptyState() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(AppSpacing.xxl),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(AppBorderRadius.lg),
+        border: Border.all(color: AppColors.border, style: BorderStyle.solid),
+      ),
+      child: Column(
+        children: [
+          const Icon(Icons.description_outlined,
+              size: 48, color: AppColors.textHint),
+          const SizedBox(height: AppSpacing.md),
+          Text(
+            _searchQuery.isNotEmpty 
+                ? 'No quotations match "$_searchQuery".'
+                : 'No quotations found.\nClick "New Quotation" to create one.',
+            style: AppTextStyles.bodyMedium
+                .copyWith(color: AppColors.textSecondary),
+            textAlign: TextAlign.center,
+          ),
         ],
       ),
     );

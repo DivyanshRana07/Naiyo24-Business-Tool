@@ -137,16 +137,15 @@ class _VendorFormDialogState extends ConsumerState<VendorFormDialog> {
               children: [
                 TextButton(
                   onPressed: () => Navigator.of(context).pop(),
-                  style: TextButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.md),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppBorderRadius.button)),
-                  ),
-                  child: Text('Cancel', style: AppTextStyles.labelLarge),
+                  child: const Text('Cancel'),
                 ),
-                const SizedBox(width: AppSpacing.md),
-                CustomButton(
-                  label: 'Save Vendor',
+                const SizedBox(width: 16),
+                FilledButton(
                   onPressed: _save,
+                  style: FilledButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                  ),
+                  child: const Text('Save Vendor'),
                 ),
               ],
             ),

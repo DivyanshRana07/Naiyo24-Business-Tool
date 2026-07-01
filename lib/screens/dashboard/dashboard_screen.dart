@@ -346,16 +346,7 @@ class _GettingStartedGrid extends StatelessWidget {
       route: AppRoutes.newClient,
       listRoute: AppRoutes.clients,
     ),
-    _BlockData(
-      icon: Icons.leaderboard_rounded,
-      iconColor: Color(0xFF8B5CF6),
-      title: 'Lead Management',
-      description:
-          'Capture and nurture prospective clients through a simple pipeline. Convert leads to active clients seamlessly.',
-      actionLabel: 'Add New Lead',
-      route: AppRoutes.newLead,
-      listRoute: AppRoutes.leads,
-    ),
+  
   ];
 
   @override

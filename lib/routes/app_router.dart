@@ -12,6 +12,7 @@ import '../screens/dashboard/dashboard_screen.dart' deferred as dashboard;
 import '../screens/settings/settings_screen.dart' deferred as settings;
 import '../screens/invoices/invoices_screen.dart' deferred as invoices;
 import '../screens/quotations/quotations_screen.dart' deferred as quotations;
+import '../screens/quotations/create_quotation_screen.dart' deferred as create_quotation_screen;
 import '../screens/products/products_screen.dart' deferred as products;
 import '../screens/clients/clients_screen.dart' deferred as clients;
 import '../screens/clients/add_client_screen.dart' deferred as add_client_screen;
@@ -258,7 +259,10 @@ GoRouter appRouter(Ref ref) {
             name: 'new-quotation',
             pageBuilder: (context, state) => CustomTransitionPage(
               key: state.pageKey,
-              child: const _PlaceholderScreen(title: 'New Quotation'),
+              child: DeferredWidget(
+                load: create_quotation_screen.loadLibrary,
+                builder: (context) => create_quotation_screen.CreateQuotationScreen(),
+              ),
               transitionsBuilder: _slideTransition,
             ),
           ),
