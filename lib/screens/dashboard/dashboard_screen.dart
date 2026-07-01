@@ -59,9 +59,6 @@ class DashboardScreen extends ConsumerWidget {
                     
                     _GettingStartedGrid(),
                     const SizedBox(height: AppSpacing.xxl),
-                    
-                    _RecentActivitySection(),
-                    const SizedBox(height: AppSpacing.xxl),
                   ],
                 ),
               ),
@@ -336,8 +333,8 @@ class _GettingStartedGrid extends StatelessWidget {
       description:
           'Record purchase orders, vendor bills, and day-to-day expenses to keep your books accurate and up to date.',
       actionLabel: 'Record New Purchase',
-      route: AppRoutes.newExpense,
-      listRoute: AppRoutes.expenses,
+      route: AppRoutes.newPurchaseOrder,
+      listRoute: AppRoutes.purchaseOrders,
     ),
     _BlockData(
       icon: Icons.people_rounded,
@@ -417,90 +414,3 @@ class _BlockData {
   final String listRoute;
 }
 
-// ─── Recent Activity ──────────────────────────────────────────────────────────
-
-class _RecentActivitySection extends StatelessWidget {
-  static const List<Map<String, dynamic>> _items = [
-    {
-      'title': 'Invoice #INV-0042 sent',
-      'subtitle': 'Acme Corp · ₹12,500',
-      'time': '2 hours ago',
-      'icon': Icons.send_rounded,
-      'color': AppColors.primary,
-    },
-    {
-      'title': 'Payment received',
-      'subtitle': 'TechSolutions Ltd · ₹45,000',
-      'time': '5 hours ago',
-      'icon': Icons.check_circle_rounded,
-      'color': AppColors.success,
-    },
-    {
-      'title': 'Invoice overdue',
-      'subtitle': 'StartupXYZ · ₹8,200',
-      'time': '1 day ago',
-      'icon': Icons.warning_rounded,
-      'color': AppColors.error,
-    },
-    {
-      'title': 'New quotation created',
-      'subtitle': 'GlobalRetail Inc · ₹32,000',
-      'time': '2 days ago',
-      'icon': Icons.description_rounded,
-      'color': Color(0xFF06B6D4),
-    },
-  ];
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              'Recent Activity',
-              style: AppTextStyles.h2,
-            ),
-            TextButton(
-              onPressed: () {},
-              child: Text(
-                'View all',
-                style: AppTextStyles.labelLarge.copyWith(color: AppColors.primary),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: AppSpacing.sm),
-        RepaintBoundary(
-          child: Container(
-            decoration: BoxDecoration(
-              color: AppColors.surface,
-              borderRadius: BorderRadius.circular(AppBorderRadius.lg),
-              border: Border.all(color: AppColors.border),
-            ),
-            child: ListView.separated(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: _items.length,
-              separatorBuilder: (_, __) => const Divider(height: 1, color: AppColors.border),
-              itemBuilder: (_, i) {
-                final item = _items[i];
-                return RepaintBoundary(
-                  child: ActivityCard(
-                    title: item['title'] as String,
-                    subtitle: item['subtitle'] as String,
-                    time: item['time'] as String,
-                    icon: item['icon'] as IconData,
-                    color: item['color'] as Color,
-                  ),
-                );
-              },
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-}

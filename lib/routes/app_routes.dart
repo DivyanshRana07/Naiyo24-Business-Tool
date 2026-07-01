@@ -21,7 +21,8 @@ abstract final class AppRoutes {
   static const String dashboard  = '/dashboard';
   static const String invoices   = '/invoices';
   static const String quotations = '/quotations';
-  static const String purchases  = '/purchases';
+  static const String purchaseOrders = '/purchase-orders';
+  static const String vendors    = '/vendors';
   static const String clients    = '/clients';
   static const String products   = '/products';
   static const String reports    = '/reports';
@@ -32,7 +33,7 @@ abstract final class AppRoutes {
   static const String invoiceDetail = '/invoices/:id';
   static const String returnItems  = '/invoices/:id/return';
   static const String newQuotation = '/quotations/new';
-  static const String newExpense   = '/expenses/new';
+  static const String newPurchaseOrder = '/purchase-orders/new';
   static const String newClient    = '/clients/new';
   static const String newLead      = '/leads/new';
   static const String newProduct   = '/products/new';
@@ -48,7 +49,8 @@ abstract final class AppRoutes {
     onboarding,
     invoices,
     quotations,
-    purchases,
+    purchaseOrders,
+    vendors,
     clients,
     products,
     reports,

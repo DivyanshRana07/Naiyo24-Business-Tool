@@ -6,12 +6,11 @@ part of 'auth_notifier.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$authNotifierHash() => r'39f85fb16a3366ea6617b22e271cec49395bd111';
+String _$authNotifierHash() => r'872d9627bcd23a99db8c596816e6e1634f2fb560';
 
-/// [AuthNotifier] manages registration / authentication state locally.
+/// [AuthNotifier] manages authentication state locally.
 ///
-/// Flow: User visits dashboard → clicks a feature → redirected to /register
-///       → fills form → isRegistered = true → feature unlocked.
+/// Architecture: UI → Provider → Notifier → State Update
 ///
 /// Copied from [AuthNotifier].
 @ProviderFor(AuthNotifier)

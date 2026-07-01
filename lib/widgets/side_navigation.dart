@@ -35,18 +35,28 @@ class _SideNavigationState extends ConsumerState<SideNavigation> {
     _NavItem(icon: Icons.inventory_2_rounded,   label: 'Products',    route: AppRoutes.products),
   ];
 
-  // ── Flat bottom items (below Inventory) ────────────────────────────────────
+  // ── Purchases dropdown children ───────────────────────────────────────────
+  static const List<_NavItem> _purchasesChildren = [
+    _NavItem(icon: Icons.store_rounded,         label: 'Manage Vendors',  route: AppRoutes.vendors),
+    _NavItem(icon: Icons.shopping_bag_rounded,  label: 'Purchase Orders', route: AppRoutes.purchaseOrders),
+  ];
+
+  // ── Flat bottom items (below Purchases) ────────────────────────────────────
   static const List<_NavItem> _bottomItems = [
-    _NavItem(icon: Icons.shopping_bag_rounded, label: 'Purchase Orders', route: AppRoutes.purchases),
-    _NavItem(icon: Icons.bar_chart_rounded,   label: 'Reports',          route: AppRoutes.reports),
+    _NavItem(icon: Icons.history_rounded,     label: 'History',          route: AppRoutes.reports),
     _NavItem(icon: Icons.settings_rounded,    label: 'Settings',         route: AppRoutes.settings),
   ];
 
   bool _inventoryExpanded = false;
+  bool _purchasesExpanded = false;
 
   /// Returns true if any inventory child is the current active route,
   /// so the parent tile stays highlighted even when collapsed.
   bool get _isInventoryActive => _inventoryChildren.any(
+    (item) => widget.currentRoute == item.route,
+  );
+
+  bool get _isPurchasesActive => _purchasesChildren.any(
     (item) => widget.currentRoute == item.route,
   );
 
@@ -55,16 +65,20 @@ class _SideNavigationState extends ConsumerState<SideNavigation> {
     super.initState();
     // Auto-expand inventory group on load if a child route is active.
     _inventoryExpanded = _isInventoryActive;
+    _purchasesExpanded = _isPurchasesActive;
   }
 
   @override
   Widget build(BuildContext context) {
     final isExpanded = ref.watch(sidebarExpandedProvider);
 
-    // When the sidebar collapses, also collapse the inventory dropdown.
-    if (!isExpanded && _inventoryExpanded) {
+    // When the sidebar collapses, also collapse the dropdowns.
+    if (!isExpanded && (_inventoryExpanded || _purchasesExpanded)) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) setState(() => _inventoryExpanded = false);
+        if (mounted) setState(() {
+          _inventoryExpanded = false;
+          _purchasesExpanded = false;
+        });
       });
     }
 
@@ -161,16 +175,19 @@ class _SideNavigationState extends ConsumerState<SideNavigation> {
                   }),
 
                   // ── Inventory Group ────────────────────────────────────────
-                  _InventoryGroupTile(
+                  _DropdownGroupTile(
                     isExpanded: isExpanded,
                     isActive: _isInventoryActive,
                     isOpen: _inventoryExpanded,
+                    label: 'Inventory',
+                    icon: Icons.warehouse_rounded,
                     onTap: () {
                       if (!isExpanded) {
-                        // Sidebar is collapsed → expand sidebar first,
-                        // then open inventory dropdown.
                         ref.read(sidebarExpandedProvider.notifier).setExpanded(true);
-                        setState(() => _inventoryExpanded = true);
+                        setState(() {
+                          _inventoryExpanded = true;
+                          _purchasesExpanded = false;
+                        });
                       } else {
                         setState(() => _inventoryExpanded = !_inventoryExpanded);
                       }
@@ -185,7 +202,47 @@ class _SideNavigationState extends ConsumerState<SideNavigation> {
                         ? Column(
                             children: _inventoryChildren.map((item) {
                               final selected = widget.currentRoute == item.route;
-                              return _InventoryChildTile(
+                              return _DropdownChildTile(
+                                item: item,
+                                selected: selected,
+                                onTap: () {
+                                  if (!selected) context.go(item.route);
+                                },
+                              );
+                            }).toList(),
+                          )
+                        : const SizedBox.shrink(),
+                  ),
+
+                  // ── Purchases & Expenses Group ─────────────────────────────
+                  _DropdownGroupTile(
+                    isExpanded: isExpanded,
+                    isActive: _isPurchasesActive,
+                    isOpen: _purchasesExpanded,
+                    label: 'Purchases & Expenses',
+                    icon: Icons.account_balance_wallet_rounded,
+                    onTap: () {
+                      if (!isExpanded) {
+                        ref.read(sidebarExpandedProvider.notifier).setExpanded(true);
+                        setState(() {
+                          _purchasesExpanded = true;
+                          _inventoryExpanded = false;
+                        });
+                      } else {
+                        setState(() => _purchasesExpanded = !_purchasesExpanded);
+                      }
+                    },
+                  ),
+
+                  // Animated children list for purchases
+                  AnimatedSize(
+                    duration: const Duration(milliseconds: 250),
+                    curve: Curves.easeInOut,
+                    child: (_purchasesExpanded && isExpanded)
+                        ? Column(
+                            children: _purchasesChildren.map((item) {
+                              final selected = widget.currentRoute == item.route;
+                              return _DropdownChildTile(
                                 item: item,
                                 selected: selected,
                                 onTap: () {
@@ -240,24 +297,28 @@ class _NavItem {
 // ─── Inventory Group Parent Tile ──────────────────────────────────────────────
 // Shows the "Inventory" label + a chevron that rotates when open.
 
-class _InventoryGroupTile extends StatefulWidget {
-  const _InventoryGroupTile({
+class _DropdownGroupTile extends StatefulWidget {
+  const _DropdownGroupTile({
     required this.isExpanded,
     required this.isActive,
     required this.isOpen,
     required this.onTap,
+    required this.label,
+    required this.icon,
   });
 
   final bool isExpanded; // sidebar expanded/collapsed
   final bool isActive;   // any child is currently selected
   final bool isOpen;     // dropdown is open
   final VoidCallback onTap;
+  final String label;
+  final IconData icon;
 
   @override
-  State<_InventoryGroupTile> createState() => _InventoryGroupTileState();
+  State<_DropdownGroupTile> createState() => _DropdownGroupTileState();
 }
 
-class _InventoryGroupTileState extends State<_InventoryGroupTile> {
+class _DropdownGroupTileState extends State<_DropdownGroupTile> {
   bool _isHovered = false;
 
   @override
@@ -312,7 +373,7 @@ class _InventoryGroupTileState extends State<_InventoryGroupTile> {
               children: [
                 // Inventory icon
                 Icon(
-                  Icons.warehouse_rounded,
+                  widget.icon,
                   size: 20,
                   color: iconColor,
                 ),
@@ -320,7 +381,7 @@ class _InventoryGroupTileState extends State<_InventoryGroupTile> {
                   const SizedBox(width: AppSpacing.md),
                   Expanded(
                     child: Text(
-                      'Inventory',
+                      widget.label,
                       style: AppTextStyles.labelLarge.copyWith(
                         fontWeight: widget.isActive
                             ? FontWeight.w600
@@ -354,8 +415,8 @@ class _InventoryGroupTileState extends State<_InventoryGroupTile> {
 // ─── Inventory Child Tile ─────────────────────────────────────────────────────
 // Indented child row shown inside the expanded Inventory group.
 
-class _InventoryChildTile extends StatefulWidget {
-  const _InventoryChildTile({
+class _DropdownChildTile extends StatefulWidget {
+  const _DropdownChildTile({
     required this.item,
     required this.selected,
     required this.onTap,
@@ -366,10 +427,10 @@ class _InventoryChildTile extends StatefulWidget {
   final VoidCallback onTap;
 
   @override
-  State<_InventoryChildTile> createState() => _InventoryChildTileState();
+  State<_DropdownChildTile> createState() => _DropdownChildTileState();
 }
 
-class _InventoryChildTileState extends State<_InventoryChildTile> {
+class _DropdownChildTileState extends State<_DropdownChildTile> {
   bool _isHovered = false;
 
   @override

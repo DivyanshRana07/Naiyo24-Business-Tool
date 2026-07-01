@@ -19,6 +19,10 @@ import '../screens/products/add_product_screen.dart' deferred as add_product_scr
 import '../screens/invoices/create_invoice_screen.dart' deferred as create_invoice_screen;
 import '../screens/invoices/invoice_detail_screen.dart' deferred as invoice_detail_screen;
 import '../screens/invoices/return_items_screen.dart' deferred as return_items_screen;
+import '../screens/reports/reports_screen.dart' deferred as reports;
+import '../screens/vendors/vendors_screen.dart' deferred as vendors;
+import '../screens/purchases/purchase_orders_screen.dart' deferred as purchase_orders;
+import '../screens/purchases/create_purchase_order_screen.dart' deferred as create_purchase_order;
 import 'app_routes.dart';
 
 part 'app_router.g.dart';
@@ -197,11 +201,26 @@ GoRouter appRouter(Ref ref) {
         ),
       ),
       GoRoute(
-        path: AppRoutes.purchases,
-        name: 'purchases',
+        path: AppRoutes.purchaseOrders,
+        name: 'purchase-orders',
         pageBuilder: (context, state) => CustomTransitionPage(
           key: state.pageKey,
-          child: const _PlaceholderScreen(title: 'Purchase Orders'),
+          child: DeferredWidget(
+            load: purchase_orders.loadLibrary,
+            builder: (context) => purchase_orders.PurchaseOrdersScreen(),
+          ),
+          transitionsBuilder: _fadeTransition,
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.vendors,
+        name: 'vendors',
+        pageBuilder: (context, state) => CustomTransitionPage(
+          key: state.pageKey,
+          child: DeferredWidget(
+            load: vendors.loadLibrary,
+            builder: (context) => vendors.VendorsScreen(),
+          ),
           transitionsBuilder: _fadeTransition,
         ),
       ),
@@ -234,7 +253,10 @@ GoRouter appRouter(Ref ref) {
         name: 'reports',
         pageBuilder: (context, state) => CustomTransitionPage(
           key: state.pageKey,
-          child: const _PlaceholderScreen(title: 'Reports'),
+          child: DeferredWidget(
+            load: reports.loadLibrary,
+            builder: (context) => reports.ReportsScreen(),
+          ),
           transitionsBuilder: _fadeTransition,
         ),
       ),
@@ -336,11 +358,14 @@ GoRouter appRouter(Ref ref) {
         ),
       ),
       GoRoute(
-        path: AppRoutes.newExpense,
-        name: 'new-expense',
+        path: AppRoutes.newPurchaseOrder,
+        name: 'new-purchase-order',
         pageBuilder: (context, state) => CustomTransitionPage(
           key: state.pageKey,
-          child: const _PlaceholderScreen(title: 'Record New Purchase'),
+          child: DeferredWidget(
+            load: create_purchase_order.loadLibrary,
+            builder: (context) => create_purchase_order.CreatePurchaseOrderScreen(),
+          ),
           transitionsBuilder: _fadeTransition,
         ),
       ),

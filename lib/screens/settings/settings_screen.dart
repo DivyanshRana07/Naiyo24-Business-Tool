@@ -24,7 +24,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     'Profile',
     'Business Details',
     'Taxes',
-    'Integrations',
   ];
 
   // Profile controllers
@@ -233,8 +232,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         return _buildBusinessDetailsTab();
       case 2:
         return _buildTaxesTab();
-      case 3:
-        return _buildIntegrationsTab();
       default:
         return const SizedBox.shrink();
     }
@@ -373,103 +370,4 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     );
   }
 
-  Widget _buildIntegrationsTab() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(AppSpacing.md),
-              decoration: BoxDecoration(
-                color: AppColors.primary.withValues(alpha: 0.05),
-                borderRadius: BorderRadius.circular(AppBorderRadius.md),
-              ),
-              child: const Icon(Icons.chat_bubble_outline_rounded, color: AppColors.primary, size: 28),
-            ),
-            const SizedBox(width: AppSpacing.md),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('Integrations', style: AppTextStyles.h2),
-                  const SizedBox(height: AppSpacing.xs),
-                  Text('Connect your business tool with external services to automate workflows.', style: AppTextStyles.bodyMedium),
-                ],
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: AppSpacing.xl),
-        _buildIntegrationTile(
-          title: 'WhatsApp Business',
-          description: 'Send invoices and reminders automatically to clients via WhatsApp.',
-          icon: Icons.chat_bubble_outline_rounded,
-          connected: true,
-        ),
-        const Divider(height: AppSpacing.xl, color: AppColors.border),
-        _buildIntegrationTile(
-          title: 'Stripe Payments',
-          description: 'Accept credit card payments directly from your generated invoice links.',
-          icon: Icons.credit_card_rounded,
-          connected: false,
-        ),
-        const Divider(height: AppSpacing.xl, color: AppColors.border),
-        _buildIntegrationTile(
-          title: 'Slack Notifications',
-          description: 'Receive real-time alerts in Slack whenever a client views or pays an invoice.',
-          icon: Icons.notifications_active_outlined,
-          connected: false,
-        ),
-      ],
-    );
-  }
-
-  Widget _buildIntegrationTile({
-    required String title,
-    required String description,
-    required IconData icon,
-    required bool connected,
-  }) {
-    return Row(
-      children: [
-        Container(
-          padding: const EdgeInsets.all(AppSpacing.md),
-          decoration: BoxDecoration(
-            color: AppColors.primary.withValues(alpha: 0.05),
-            borderRadius: BorderRadius.circular(AppBorderRadius.md),
-          ),
-          child: Icon(icon, color: AppColors.primary, size: 24),
-        ),
-        const SizedBox(width: AppSpacing.md),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(title, style: AppTextStyles.labelLarge),
-              const SizedBox(height: 4),
-              Text(description, style: AppTextStyles.bodyMedium),
-            ],
-          ),
-        ),
-        const SizedBox(width: AppSpacing.md),
-        OutlinedButton(
-          onPressed: () {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('${connected ? "Disconnected" : "Connected"} $title')),
-            );
-          },
-          style: OutlinedButton.styleFrom(
-            foregroundColor: connected ? AppColors.error : AppColors.primary,
-            side: BorderSide(color: connected ? AppColors.error : AppColors.primary),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(AppBorderRadius.button),
-            ),
-          ),
-          child: Text(connected ? 'Disconnect' : 'Connect'),
-        ),
-      ],
-    );
-  }
 }

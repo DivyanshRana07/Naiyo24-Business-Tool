@@ -84,16 +84,6 @@ class DashboardAppBar extends ConsumerWidget implements PreferredSizeWidget {
           },
           itemBuilder: (context) => [
             PopupMenuItem(
-              value: 'profile',
-              child: Row(
-                children: [
-                  const Icon(Icons.person_outline_rounded, size: 20, color: AppColors.textSecondary),
-                  const SizedBox(width: 8),
-                  Text('My Profile', style: AppTextStyles.bodyMedium),
-                ],
-              ),
-            ),
-            PopupMenuItem(
               value: 'settings',
               child: Row(
                 children: [
