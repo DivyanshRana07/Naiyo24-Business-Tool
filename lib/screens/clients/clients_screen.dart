@@ -95,6 +95,12 @@ class _ClientsScreenState extends ConsumerState<ClientsScreen> {
               ),
             )
           : null,
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => context.push(AppRoutes.newClient),
+        backgroundColor: AppColors.primary,
+        icon: const Icon(Icons.add, color: Colors.white),
+        label: const Text('Add new client', style: TextStyle(color: Colors.white)),
+      ),
       body: Row(
         children: [
           if (MediaQuery.of(context).size.width >= 900)

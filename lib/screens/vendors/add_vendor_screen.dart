@@ -225,9 +225,13 @@ class _AddVendorScreenState extends ConsumerState<AddVendorScreen> {
                                 child: Text('Cancel', style: AppTextStyles.labelLarge),
                               ),
                               const SizedBox(width: AppSpacing.md),
-                              CustomButton(
-                                label: 'Save Vendor',
+                              FilledButton(
                                 onPressed: _save,
+                                style: FilledButton.styleFrom(
+                                  backgroundColor: AppColors.primary,
+                                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.md),
+                                ),
+                                child: Text('Save Vendor', style: AppTextStyles.labelLarge.copyWith(color: Colors.white)),
                               ),
                             ],
                           ),

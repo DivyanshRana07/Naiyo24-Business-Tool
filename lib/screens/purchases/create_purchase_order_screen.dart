@@ -37,7 +37,7 @@ class _CreatePurchaseOrderScreenState
   @override
   void initState() {
     super.initState();
-    _titleController = TextEditingController(text: 'Purchase Order');
+    _titleController = TextEditingController();
     _descriptionController = TextEditingController();
     _poNumberController = TextEditingController(
         text: 'PO-${DateTime.now().millisecondsSinceEpoch.toString().substring(8)}');
@@ -190,9 +190,11 @@ class _CreatePurchaseOrderScreenState
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // ── Page Header ─────────────────────────────────────────────
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                  Wrap(
+                    alignment: WrapAlignment.spaceBetween,
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    spacing: AppSpacing.md,
+                    runSpacing: AppSpacing.md,
                     children: [
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -203,6 +205,7 @@ class _CreatePurchaseOrderScreenState
                         ],
                       ),
                       Row(
+                        mainAxisSize: MainAxisSize.min,
                         children: [
                           OutlinedButton(
                             onPressed: () => context.pop(),
@@ -219,7 +222,7 @@ class _CreatePurchaseOrderScreenState
                           FilledButton.icon(
                             onPressed: _savePO,
                             icon: const Icon(Icons.save_rounded, size: 18),
-                            label: const Text('Save Purchase Order'),
+                            label: const Text('Submit'),
                             style: FilledButton.styleFrom(
                               backgroundColor: AppColors.primary,
                               foregroundColor: Colors.white,
@@ -242,11 +245,11 @@ class _CreatePurchaseOrderScreenState
                       children: [
                         TextField(
                           controller: _titleController,
-                          style: AppTextStyles.h1.copyWith(fontSize: 28, color: AppColors.textPrimary),
+                          style: AppTextStyles.h1.copyWith(color: AppColors.textPrimary),
                           decoration: InputDecoration(
                             border: InputBorder.none,
                             hintText: 'Purchase Order Title',
-                            hintStyle: AppTextStyles.h1.copyWith(fontSize: 28, color: AppColors.textSecondary.withValues(alpha: 0.5)),
+                            hintStyle: AppTextStyles.h1.copyWith(color: AppColors.textSecondary.withValues(alpha: 0.5)),
                           ),
                         ),
                         Divider(color: AppColors.border.withValues(alpha: 0.5)),
@@ -295,7 +298,7 @@ class _CreatePurchaseOrderScreenState
                                     child: Column(
                                       crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
-                                        Text('Naiyo24 Business', style: AppTextStyles.labelLarge.copyWith(fontWeight: FontWeight.w700)),
+                                        Text('Naiyo24 Business', style: AppTextStyles.labelLarge.copyWith(fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
                                         const SizedBox(height: 2),
                                         Text(authState.userEmail ?? 'admin@naiyo24.com', style: AppTextStyles.bodyMedium),
                                         const SizedBox(height: 2),
@@ -323,15 +326,7 @@ class _CreatePurchaseOrderScreenState
                                   _sectionLabel('Order To'),
                                   TextButton.icon(
                                     onPressed: () {
-                                      showDialog(
-                                        context: context,
-                                        builder: (_) => VendorFormDialog(
-                                          onSaved: (vendor) {
-                                            // After save, the vendor list will update automatically.
-                                            // We try to match it on next build.
-                                          },
-                                        ),
-                                      );
+                                      context.push(AppRoutes.newVendor);
                                     },
                                     icon: const Icon(Icons.add_rounded, size: 15),
                                     label: const Text('New Vendor'),
@@ -387,7 +382,7 @@ class _CreatePurchaseOrderScreenState
                                   child: Column(
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
-                                      Text(_selectedVendor!.name, style: AppTextStyles.labelLarge),
+                                      Text(_selectedVendor!.name, style: AppTextStyles.labelLarge.copyWith(color: AppColors.primary)),
                                       if (_selectedVendor!.contactPerson.isNotEmpty) ...[
                                         const SizedBox(height: 2),
                                         Text(_selectedVendor!.contactPerson, style: AppTextStyles.bodyMedium),
@@ -496,10 +491,10 @@ class _CreatePurchaseOrderScreenState
                           ),
                           child: Row(
                             children: [
-                              Expanded(flex: 5, child: Text('Description', style: AppTextStyles.labelLarge.copyWith(fontSize: 13))),
-                              Expanded(flex: 2, child: Text('Qty', style: AppTextStyles.labelLarge.copyWith(fontSize: 13))),
-                              Expanded(flex: 2, child: Text('Unit Price (₹)', style: AppTextStyles.labelLarge.copyWith(fontSize: 13))),
-                              Expanded(flex: 2, child: Text('Total (₹)', style: AppTextStyles.labelLarge.copyWith(fontSize: 13), textAlign: TextAlign.right)),
+                              Expanded(flex: 5, child: Text('Description', style: AppTextStyles.labelLarge.copyWith(fontSize: 13, color: AppColors.textSecondary))),
+                              Expanded(flex: 2, child: Text('Qty', style: AppTextStyles.labelLarge.copyWith(fontSize: 13, color: AppColors.textSecondary))),
+                              Expanded(flex: 2, child: Text('Unit Price (₹)', style: AppTextStyles.labelLarge.copyWith(fontSize: 13, color: AppColors.textSecondary))),
+                              Expanded(flex: 2, child: Text('Total (₹)', style: AppTextStyles.labelLarge.copyWith(fontSize: 13, color: AppColors.textSecondary), textAlign: TextAlign.right)),
                               const SizedBox(width: 44),
                             ],
                           ),
@@ -595,8 +590,9 @@ class _CreatePurchaseOrderScreenState
                       borderRadius: BorderRadius.circular(AppBorderRadius.lg),
                       border: Border.all(color: AppColors.border),
                     ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
+                    child: Wrap(
+                      alignment: WrapAlignment.end,
+                      spacing: AppSpacing.md,
                       children: [
                         OutlinedButton(
                           onPressed: () => context.pop(),
@@ -609,11 +605,10 @@ class _CreatePurchaseOrderScreenState
                           ),
                           child: const Text('Cancel'),
                         ),
-                        const SizedBox(width: AppSpacing.md),
                         FilledButton.icon(
                           onPressed: _savePO,
                           icon: const Icon(Icons.save_rounded, size: 18),
-                          label: const Text('Save Purchase Order'),
+                          label: const Text('Submit'),
                           style: FilledButton.styleFrom(
                             backgroundColor: AppColors.primary,
                             foregroundColor: Colors.white,

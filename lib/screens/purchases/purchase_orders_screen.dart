@@ -83,6 +83,12 @@ class _PurchaseOrdersScreenState extends ConsumerState<PurchaseOrdersScreen> {
               ),
             )
           : null,
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => context.push(AppRoutes.newPurchaseOrder),
+        backgroundColor: AppColors.primary,
+        icon: const Icon(Icons.add, color: Colors.white),
+        label: const Text('Create PO', style: TextStyle(color: Colors.white)),
+      ),
       body: Row(
         children: [
           if (isDesktop)
@@ -222,16 +228,21 @@ class _PurchaseOrdersScreenState extends ConsumerState<PurchaseOrdersScreen> {
                       ),
                       clipBehavior: Clip.hardEdge,
                       child: DataTable(
-                        headingRowColor: WidgetStateProperty.all(AppColors.background),
+                        headingRowColor: WidgetStateProperty.all(AppColors.surfaceVariant),
+                        headingTextStyle: AppTextStyles.caption.copyWith(
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.textSecondary,
+                          letterSpacing: 0.5,
+                        ),
                         dividerThickness: 1,
                         dataRowMaxHeight: 64,
                         dataRowMinHeight: 64,
-                        columns: [
-                          DataColumn(label: Text('PO Number', style: AppTextStyles.labelLarge)),
-                          DataColumn(label: Text('Date', style: AppTextStyles.labelLarge)),
-                          DataColumn(label: Text('Vendor', style: AppTextStyles.labelLarge)),
-                          DataColumn(label: Text('Total Amount', style: AppTextStyles.labelLarge)),
-                          DataColumn(label: Text('Status', style: AppTextStyles.labelLarge)),
+                        columns: const [
+                          DataColumn(label: Text('PO NUMBER')),
+                          DataColumn(label: Text('DATE')),
+                          DataColumn(label: Text('VENDOR')),
+                          DataColumn(label: Text('TOTAL AMOUNT')),
+                          DataColumn(label: Text('STATUS')),
                         ],
                         rows: filteredPos.map((po) {
                           final isPayed = po.status == POStatus.payed;

@@ -68,6 +68,12 @@ class VendorsScreen extends ConsumerWidget {
               ),
             )
           : null,
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => context.push(AppRoutes.newVendor),
+        backgroundColor: AppColors.primary,
+        icon: const Icon(Icons.add, color: Colors.white),
+        label: const Text('Add vendors', style: TextStyle(color: Colors.white)),
+      ),
       body: Row(
         children: [
           if (isDesktop)
@@ -190,16 +196,21 @@ class VendorsScreen extends ConsumerWidget {
                       ),
                       clipBehavior: Clip.hardEdge,
                       child: DataTable(
-                        headingRowColor: WidgetStateProperty.all(AppColors.background),
+                        headingRowColor: WidgetStateProperty.all(AppColors.surfaceVariant),
+                        headingTextStyle: AppTextStyles.caption.copyWith(
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.textSecondary,
+                          letterSpacing: 0.5,
+                        ),
                         dividerThickness: 1,
                         dataRowMaxHeight: 64,
                         dataRowMinHeight: 64,
-                        columns: [
-                          DataColumn(label: Text('Vendor Name', style: AppTextStyles.labelLarge)),
-                          DataColumn(label: Text('Contact Person', style: AppTextStyles.labelLarge)),
-                          DataColumn(label: Text('Email', style: AppTextStyles.labelLarge)),
-                          DataColumn(label: Text('Phone', style: AppTextStyles.labelLarge)),
-                          DataColumn(label: Text('Actions', style: AppTextStyles.labelLarge)),
+                        columns: const [
+                          DataColumn(label: Text('VENDOR NAME')),
+                          DataColumn(label: Text('CONTACT PERSON')),
+                          DataColumn(label: Text('EMAIL')),
+                          DataColumn(label: Text('PHONE')),
+                          DataColumn(label: Text('ACTIONS')),
                         ],
                         rows: vendors.map((vendor) {
                           return DataRow(

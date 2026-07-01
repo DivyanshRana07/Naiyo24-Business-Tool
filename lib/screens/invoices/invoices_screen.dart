@@ -100,6 +100,12 @@ class _InvoicesScreenState extends ConsumerState<InvoicesScreen> {
               ),
             )
           : null,
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => context.push(AppRoutes.newInvoice),
+        backgroundColor: AppColors.primary,
+        icon: const Icon(Icons.add, color: Colors.white),
+        label: const Text('Create new invoice', style: TextStyle(color: Colors.white)),
+      ),
       body: Row(
         children: [
           if (isDesktop)
@@ -190,7 +196,7 @@ class _InvoicesScreenState extends ConsumerState<InvoicesScreen> {
                             ),
                             icon: const Icon(Icons.add_rounded,
                                 size: 18, color: Colors.white),
-                            label: Text('Create Invoice',
+                            label: Text('Create new invoice',
                                 style: AppTextStyles.labelLarge
                                     .copyWith(color: Colors.white)),
                           ),
