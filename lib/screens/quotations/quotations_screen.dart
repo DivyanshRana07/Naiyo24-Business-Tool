@@ -270,20 +270,22 @@ class _QuotationsScreenState extends ConsumerState<QuotationsScreen> {
                                     .copyWith(color: AppColors.textPrimary)),
                           ),
                           const SizedBox(width: AppSpacing.md),
-                          ElevatedButton.icon(
+                          FilledButton.icon(
                             onPressed: () => context.push(AppRoutes.newQuotation),
-                            icon: const Icon(Icons.add_rounded, size: 18),
-                            label: const Text('New Quotation'),
-                            style: ElevatedButton.styleFrom(
+                            style: FilledButton.styleFrom(
                               backgroundColor: AppColors.primary,
-                              foregroundColor: AppColors.textOnPrimary,
-                              elevation: 0,
                               padding: const EdgeInsets.symmetric(
-                                  horizontal: AppSpacing.xl, vertical: AppSpacing.md),
+                                  horizontal: 20, vertical: 14),
                               shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(AppBorderRadius.md),
+                                borderRadius:
+                                    BorderRadius.circular(AppBorderRadius.md),
                               ),
                             ),
+                            icon: const Icon(Icons.add_rounded,
+                                size: 18, color: Colors.white),
+                            label: Text('Create Quotation',
+                                style: AppTextStyles.labelLarge
+                                    .copyWith(color: Colors.white)),
                           ),
                         ],
                       ),
@@ -531,7 +533,7 @@ class _QuotationsScreenState extends ConsumerState<QuotationsScreen> {
           Text(
             _searchQuery.isNotEmpty 
                 ? 'No quotations match "$_searchQuery".'
-                : 'No quotations found.\nClick "New Quotation" to create one.',
+                : 'No quotations found.\nClick "Create Quotation" to create one.',
             style: AppTextStyles.bodyMedium
                 .copyWith(color: AppColors.textSecondary),
             textAlign: TextAlign.center,

@@ -157,96 +157,111 @@ class _HeaderBar extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return Row(
+    return Wrap(
+      alignment: WrapAlignment.spaceBetween,
+      crossAxisAlignment: WrapCrossAlignment.center,
+      spacing: AppSpacing.md,
+      runSpacing: AppSpacing.md,
       children: [
-        // Back
-        InkWell(
-          onTap: () {
-            if (context.canPop()) {
-              context.pop();
-            } else {
-              context.go(AppRoutes.invoices);
-            }
-          },
-          borderRadius: BorderRadius.circular(AppBorderRadius.sm),
-          child: Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: AppColors.surfaceVariant,
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Back
+            InkWell(
+              onTap: () {
+                if (context.canPop()) {
+                  context.pop();
+                } else {
+                  context.go(AppRoutes.invoices);
+                }
+              },
               borderRadius: BorderRadius.circular(AppBorderRadius.sm),
+              child: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: AppColors.surfaceVariant,
+                  borderRadius: BorderRadius.circular(AppBorderRadius.sm),
+                ),
+                child: const Icon(Icons.arrow_back_rounded,
+                    size: 20, color: AppColors.textSecondary),
+              ),
             ),
-            child: const Icon(Icons.arrow_back_rounded,
-                size: 20, color: AppColors.textSecondary),
-          ),
+            const SizedBox(width: AppSpacing.md),
+            const Icon(Icons.receipt_long_rounded,
+                color: AppColors.primary, size: 28),
+            const SizedBox(width: AppSpacing.sm),
+            Flexible(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(invoice.invoiceNo, style: AppTextStyles.h1),
+                  Text('Invoice Details',
+                      style: AppTextStyles.caption
+                          .copyWith(color: AppColors.textSecondary)),
+                ],
+              ),
+            ),
+          ],
         ),
-        const SizedBox(width: AppSpacing.md),
-        const Icon(Icons.receipt_long_rounded,
-            color: AppColors.primary, size: 28),
-        const SizedBox(width: AppSpacing.sm),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(invoice.invoiceNo, style: AppTextStyles.h1),
-              Text('Invoice Details',
-                  style: AppTextStyles.caption
-                      .copyWith(color: AppColors.textSecondary)),
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Record Payment button
+            if (invoice.status != InvoiceStatus.paid) ...[
+              FilledButton.icon(
+                onPressed: () => _showRecordPayment(context, ref),
+                style: FilledButton.styleFrom(
+                  backgroundColor: AppColors.success,
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 20, vertical: 12),
+                  shape: RoundedRectangleBorder(
+                      borderRadius:
+                          BorderRadius.circular(AppBorderRadius.md)),
+                ),
+                icon: const Icon(Icons.payments_rounded,
+                    size: 18, color: Colors.white),
+                label: Text('Record Payment',
+                    style: AppTextStyles.labelLarge
+                        .copyWith(color: Colors.white)),
+              ),
+              const SizedBox(width: AppSpacing.sm),
             ],
-          ),
-        ),
-        // Record Payment button
-        if (invoice.status != InvoiceStatus.paid)
-          FilledButton.icon(
-            onPressed: () => _showRecordPayment(context, ref),
-            style: FilledButton.styleFrom(
-              backgroundColor: AppColors.success,
-              padding: const EdgeInsets.symmetric(
-                  horizontal: 20, vertical: 12),
-              shape: RoundedRectangleBorder(
-                  borderRadius:
-                      BorderRadius.circular(AppBorderRadius.md)),
+            // Return Items
+            OutlinedButton.icon(
+              onPressed: () => context.push(AppRoutes.returnItemsPath(invoice.id)),
+              style: OutlinedButton.styleFrom(
+                side: const BorderSide(color: AppColors.warning),
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 16, vertical: 12),
+                shape: RoundedRectangleBorder(
+                    borderRadius:
+                        BorderRadius.circular(AppBorderRadius.md)),
+              ),
+              icon: const Icon(Icons.assignment_return_rounded,
+                  size: 18, color: AppColors.warning),
+              label: Text('Return',
+                  style: AppTextStyles.labelLarge
+                      .copyWith(color: AppColors.warning)),
             ),
-            icon: const Icon(Icons.payments_rounded,
-                size: 18, color: Colors.white),
-            label: Text('Record Payment',
-                style: AppTextStyles.labelLarge
-                    .copyWith(color: Colors.white)),
-          ),
-        // Return Items
-        OutlinedButton.icon(
-          onPressed: () => context.push(AppRoutes.returnItemsPath(invoice.id)),
-          style: OutlinedButton.styleFrom(
-            side: const BorderSide(color: AppColors.warning),
-            padding: const EdgeInsets.symmetric(
-                horizontal: 16, vertical: 12),
-            shape: RoundedRectangleBorder(
-                borderRadius:
-                    BorderRadius.circular(AppBorderRadius.md)),
-          ),
-          icon: const Icon(Icons.assignment_return_rounded,
-              size: 18, color: AppColors.warning),
-          label: Text('Return',
-              style: AppTextStyles.labelLarge
-                  .copyWith(color: AppColors.warning)),
-        ),
-        const SizedBox(width: AppSpacing.sm),
-        // Delete
-
-        OutlinedButton.icon(
-          onPressed: () => _confirmDelete(context, ref),
-          style: OutlinedButton.styleFrom(
-            side: const BorderSide(color: AppColors.error),
-            padding: const EdgeInsets.symmetric(
-                horizontal: 16, vertical: 12),
-            shape: RoundedRectangleBorder(
-                borderRadius:
-                    BorderRadius.circular(AppBorderRadius.md)),
-          ),
-          icon: const Icon(Icons.delete_rounded,
-              size: 18, color: AppColors.error),
-          label: Text('Delete',
-              style: AppTextStyles.labelLarge
-                  .copyWith(color: AppColors.error)),
+            const SizedBox(width: AppSpacing.sm),
+            // Delete
+            OutlinedButton.icon(
+              onPressed: () => _confirmDelete(context, ref),
+              style: OutlinedButton.styleFrom(
+                side: const BorderSide(color: AppColors.error),
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 16, vertical: 12),
+                shape: RoundedRectangleBorder(
+                    borderRadius:
+                        BorderRadius.circular(AppBorderRadius.md)),
+              ),
+              icon: const Icon(Icons.delete_rounded,
+                  size: 18, color: AppColors.error),
+              label: Text('Delete',
+                  style: AppTextStyles.labelLarge
+                      .copyWith(color: AppColors.error)),
+            ),
+          ],
         ),
       ],
     );

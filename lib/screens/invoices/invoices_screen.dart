@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 
 import '../../models/invoice_model.dart';
 import '../../notifiers/auth_notifier.dart';
@@ -10,6 +11,7 @@ import '../../theme/theme.dart';
 import '../../widgets/dashboard_app_bar.dart';
 import '../../widgets/side_navigation.dart';
 import '../../widgets/export_dialog.dart';
+import '../../widgets/send_options_dialog.dart';
 
 /// Invoice List screen — shows all saved invoices from [InvoiceNotifier].
 /// The "Create Invoice" button navigates to [AppRoutes.newInvoice].
@@ -473,6 +475,19 @@ class _InvoiceDataTable extends StatelessWidget {
                 ),
                 const SizedBox(width: AppSpacing.sm),
                 Tooltip(
+                  message: 'Send Invoice',
+                  child: InkWell(
+                    onTap: () => _showSendOptionsDialog(context, inv),
+                    borderRadius: BorderRadius.circular(AppBorderRadius.sm),
+                    child: const Padding(
+                      padding: EdgeInsets.all(4),
+                      child: Icon(Icons.send_rounded,
+                          size: 18, color: AppColors.primary),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: AppSpacing.sm),
+                Tooltip(
                   message: 'Delete',
                   child: InkWell(
                     onTap: () => onDelete(inv),
@@ -490,6 +505,36 @@ class _InvoiceDataTable extends StatelessWidget {
             ]);
           }).toList(),
         ),
+      ),
+    );
+  }
+
+  void _showSendOptionsDialog(BuildContext context, InvoiceModel invoice) {
+    final formatCurrency = NumberFormat.currency(locale: 'en_IN', symbol: '₹');
+    
+    final waContent = [
+      '*Naiyo24 Invoice*',
+      'Invoice No: ${invoice.invoiceNo}',
+      'Client: ${invoice.customerName}',
+      'Amount: ${formatCurrency.format(invoice.grandTotal)}',
+    ].join('\n');
+
+    final pdfContent = [
+      'Naiyo24 Business Tool - Invoice',
+      '========================================',
+      'Invoice No: ${invoice.invoiceNo}',
+      'Client: ${invoice.customerName}',
+      'Amount: ${formatCurrency.format(invoice.grandTotal)}',
+    ].join('\n');
+
+    showDialog(
+      context: context,
+      builder: (_) => SendOptionsDialog(
+        title: 'Invoice',
+        whatsappText: waContent,
+        pdfContent: pdfContent,
+        filenamePrefix: 'invoice_${invoice.invoiceNo}',
+        onClose: () {},
       ),
     );
   }

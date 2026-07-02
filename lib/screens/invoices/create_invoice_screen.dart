@@ -13,6 +13,8 @@ import '../../widgets/dashboard_app_bar.dart';
 import '../../widgets/side_navigation.dart';
 import 'widgets/invoice_autocomplete_fields.dart';
 import 'widgets/invoice_line_item_row.dart';
+import 'package:intl/intl.dart';
+import '../../widgets/send_options_dialog.dart';
 
 /// Full "Create New Invoice" screen.
 ///
@@ -592,6 +594,31 @@ class _CreateInvoiceScreenState
           ),
         ),
         const SizedBox(height: AppSpacing.sm),
+        // Save & Send Invoice
+        FilledButton.icon(
+          onPressed: _isSaving ? null : _saveAndSendInvoice,
+          style: FilledButton.styleFrom(
+            backgroundColor: AppColors.primary,
+            minimumSize: const Size(double.infinity, 52),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(AppBorderRadius.md),
+            ),
+          ),
+          icon: _isSaving
+              ? const SizedBox(
+                  width: 18,
+                  height: 18,
+                  child: CircularProgressIndicator(
+                      strokeWidth: 2, color: Colors.white),
+                )
+              : const Icon(Icons.send_rounded, size: 20, color: Colors.white),
+          label: Text(
+            _isSaving ? 'Saving...' : 'Save & Send',
+            style:
+                AppTextStyles.labelLarge.copyWith(color: Colors.white),
+          ),
+        ),
+        const SizedBox(height: AppSpacing.sm),
         // Cancel
         OutlinedButton(
           onPressed: () => context.pop(),
@@ -613,15 +640,19 @@ class _CreateInvoiceScreenState
   // ── Save logic ─────────────────────────────────────────────────────────────
 
   Future<void> _saveInvoice() async {
+    await _saveInvoiceInternal(navigate: true);
+  }
+
+  Future<InvoiceModel?> _saveInvoiceInternal({required bool navigate}) async {
     // Validate form
-    if (!_formKey.currentState!.validate()) return;
+    if (!_formKey.currentState!.validate()) return null;
     if (_selectedCustomer == null) {
       _showError('Please select a customer.');
-      return;
+      return null;
     }
     if (_lineItems.isEmpty) {
       _showError('Add at least one product or service.');
-      return;
+      return null;
     }
 
     setState(() => _isSaving = true);
@@ -647,7 +678,7 @@ class _CreateInvoiceScreenState
     final saved =
         ref.read(invoiceNotifierProvider.notifier).saveInvoice(invoice);
 
-    if (!mounted) return;
+    if (!mounted) return null;
     setState(() => _isSaving = false);
 
     ScaffoldMessenger.of(context).showSnackBar(
@@ -660,8 +691,48 @@ class _CreateInvoiceScreenState
       ),
     );
 
-    // Navigate to invoice list
-    context.go(AppRoutes.invoices);
+    if (navigate) {
+      // Navigate to invoice list
+      context.go(AppRoutes.invoices);
+    }
+    return saved;
+  }
+
+  Future<void> _saveAndSendInvoice() async {
+    final saved = await _saveInvoiceInternal(navigate: false);
+    if (saved != null && mounted) {
+      _showSendOptionsDialog(context, saved);
+    }
+  }
+
+  void _showSendOptionsDialog(BuildContext context, InvoiceModel invoice) {
+    final formatCurrency = NumberFormat.currency(locale: 'en_IN', symbol: '₹');
+    
+    final waContent = [
+      '*Naiyo24 Invoice*',
+      'Invoice No: ${invoice.invoiceNo}',
+      'Client: ${invoice.customerName}',
+      'Amount: ${formatCurrency.format(invoice.grandTotal)}',
+    ].join('\n');
+
+    final pdfContent = [
+      'Naiyo24 Business Tool - Invoice',
+      '========================================',
+      'Invoice No: ${invoice.invoiceNo}',
+      'Client: ${invoice.customerName}',
+      'Amount: ${formatCurrency.format(invoice.grandTotal)}',
+    ].join('\n');
+
+    showDialog(
+      context: context,
+      builder: (_) => SendOptionsDialog(
+        title: 'Invoice',
+        whatsappText: waContent,
+        pdfContent: pdfContent,
+        filenamePrefix: 'invoice_${invoice.invoiceNo}',
+        onClose: () {},
+      ),
+    );
   }
 
   void _showError(String msg) {
