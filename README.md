@@ -41,7 +41,7 @@ flutter build web --release
 
 | Field    | Value               |
 |----------|---------------------|
-| Email    | demo@refrens.com    |
+| Email    | naiyodemo@gmail.com |
 | Password | demo123             |
 
 ---
