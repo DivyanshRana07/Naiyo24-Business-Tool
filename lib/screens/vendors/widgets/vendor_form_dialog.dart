@@ -17,6 +17,7 @@ class VendorFormDialog extends ConsumerStatefulWidget {
 }
 
 class _VendorFormDialogState extends ConsumerState<VendorFormDialog> {
+  final _formKey = GlobalKey<FormState>();
   late final TextEditingController _nameController;
   late final TextEditingController _contactPersonController;
   late final TextEditingController _emailController;
@@ -45,7 +46,7 @@ class _VendorFormDialogState extends ConsumerState<VendorFormDialog> {
   }
 
   void _save() {
-    if (_nameController.text.trim().isEmpty) return;
+    if (!_formKey.currentState!.validate()) return;
 
     final vendor = VendorModel(
       id: widget.existingVendor?.id ?? '',
@@ -75,81 +76,85 @@ class _VendorFormDialogState extends ConsumerState<VendorFormDialog> {
       child: Container(
         width: 500,
         padding: const EdgeInsets.all(AppSpacing.xl),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  widget.existingVendor == null ? 'Add New Vendor' : 'Edit Vendor',
-                  style: AppTextStyles.h2,
-                ),
-                IconButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  icon: const Icon(Icons.close_rounded),
-                ),
-              ],
-            ),
-            const SizedBox(height: AppSpacing.lg),
-            CustomTextField(
-              controller: _nameController,
-              labelText: 'Vendor / Company Name *',
-              hintText: 'Enter vendor name',
-            ),
-            const SizedBox(height: AppSpacing.md),
-            CustomTextField(
-              controller: _contactPersonController,
-              labelText: 'Contact Person',
-              hintText: 'Enter contact person name',
-            ),
-            const SizedBox(height: AppSpacing.md),
-            Row(
-              children: [
-                Expanded(
-                  child: CustomTextField(
-                    controller: _emailController,
-                    labelText: 'Email Address',
-                    hintText: 'Enter email',
+        child: Form(
+          key: _formKey,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    widget.existingVendor == null ? 'Add New Vendor' : 'Edit Vendor',
+                    style: AppTextStyles.h2,
                   ),
-                ),
-                const SizedBox(width: AppSpacing.md),
-                Expanded(
-                  child: CustomTextField(
-                    controller: _phoneController,
-                    labelText: 'Phone Number',
-                    hintText: 'Enter phone',
+                  IconButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    icon: const Icon(Icons.close_rounded),
                   ),
-                ),
-              ],
-            ),
-            const SizedBox(height: AppSpacing.md),
-            CustomTextField(
-              controller: _addressController,
-              labelText: 'Billing Address',
-              hintText: 'Enter complete billing address',
-              maxLines: 3,
-            ),
-            const SizedBox(height: AppSpacing.xl),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                TextButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  child: const Text('Cancel'),
-                ),
-                const SizedBox(width: 16),
-                FilledButton(
-                  onPressed: _save,
-                  style: FilledButton.styleFrom(
-                    backgroundColor: AppColors.primary,
+                ],
+              ),
+              const SizedBox(height: AppSpacing.lg),
+              CustomTextField(
+                controller: _nameController,
+                labelText: 'Vendor / Company Name *',
+                hintText: 'Enter vendor name',
+                validator: (val) => val == null || val.trim().isEmpty ? 'Required' : null,
+              ),
+              const SizedBox(height: AppSpacing.md),
+              CustomTextField(
+                controller: _contactPersonController,
+                labelText: 'Contact Person',
+                hintText: 'Enter contact person name',
+              ),
+              const SizedBox(height: AppSpacing.md),
+              Row(
+                children: [
+                  Expanded(
+                    child: CustomTextField(
+                      controller: _emailController,
+                      labelText: 'Email Address',
+                      hintText: 'Enter email',
+                    ),
                   ),
-                  child: const Text('Save Vendor'),
-                ),
-              ],
-            ),
-          ],
+                  const SizedBox(width: AppSpacing.md),
+                  Expanded(
+                    child: CustomTextField(
+                      controller: _phoneController,
+                      labelText: 'Phone Number',
+                      hintText: 'Enter phone',
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: AppSpacing.md),
+              CustomTextField(
+                controller: _addressController,
+                labelText: 'Billing Address',
+                hintText: 'Enter complete billing address',
+                maxLines: 3,
+              ),
+              const SizedBox(height: AppSpacing.xl),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    child: const Text('Cancel'),
+                  ),
+                  const SizedBox(width: 16),
+                  FilledButton(
+                    onPressed: _save,
+                    style: FilledButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                    ),
+                    child: const Text('Save Vendor'),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );

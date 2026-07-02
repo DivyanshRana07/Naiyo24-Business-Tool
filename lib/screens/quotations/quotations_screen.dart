@@ -348,7 +348,11 @@ class _QuotationsScreenState extends ConsumerState<QuotationsScreen> {
           Padding(
             padding: const EdgeInsets.only(right: AppSpacing.sm),
             child: TextButton.icon(
-              onPressed: () {},
+              onPressed: () {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Advanced filtering coming soon')),
+                );
+              },
               icon: const Icon(Icons.filter_list_rounded, size: 20),
               label: Text('Filter', style: AppTextStyles.labelLarge),
               style: TextButton.styleFrom(
@@ -416,9 +420,17 @@ class _QuotationsScreenState extends ConsumerState<QuotationsScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
-                    TextButton(onPressed: () {}, child: const Text('Edit')),
+                    TextButton(onPressed: () {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Edit coming soon')),
+                      );
+                    }, child: const Text('Edit')),
                     const SizedBox(width: AppSpacing.sm),
-                    TextButton(onPressed: () {}, child: const Text('Convert to Invoice')),
+                    TextButton(onPressed: () {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Convert to Invoice coming soon')),
+                      );
+                    }, child: const Text('Convert to Invoice')),
                   ],
                 ),
               ],

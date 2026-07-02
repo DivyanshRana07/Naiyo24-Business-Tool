@@ -12,6 +12,13 @@ import '../../widgets/dashboard_app_bar.dart';
 import '../../widgets/side_navigation.dart';
 import '../../widgets/export_dialog.dart';
 import '../../widgets/send_options_dialog.dart';
+import '../../widgets/empty_state_placeholder.dart';
+import '../../widgets/loading_placeholder.dart';
+
+final asyncInvoicesProvider = FutureProvider.autoDispose((ref) async {
+  await Future.delayed(const Duration(seconds: 1));
+  return ref.watch(invoiceNotifierProvider);
+});
 
 /// Invoice List screen — shows all saved invoices from [InvoiceNotifier].
 /// The "Create Invoice" button navigates to [AppRoutes.newInvoice].
@@ -72,20 +79,8 @@ class _InvoicesScreenState extends ConsumerState<InvoicesScreen> {
   @override
   Widget build(BuildContext context) {
     final authState = ref.watch(authNotifierProvider);
-    final allInvoices = ref.watch(invoiceNotifierProvider);
+    final asyncInvoices = ref.watch(asyncInvoicesProvider);
     final isDesktop = MediaQuery.of(context).size.width >= 900;
-
-    // ── Filter logic ──────────────────────────────────────────────────────────
-    final filtered = allInvoices.where((inv) {
-      final q = _searchCtrl.text.toLowerCase();
-      final matchesSearch = q.isEmpty ||
-          inv.invoiceNo.toLowerCase().contains(q) ||
-          inv.customerName.toLowerCase().contains(q);
-      final matchesStatus =
-          _filterStatus == null || inv.status == _filterStatus;
-      return matchesSearch && matchesStatus;
-    }).toList()
-      ..sort((a, b) => b.invoiceDate.compareTo(a.invoiceDate));
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -168,7 +163,10 @@ class _InvoicesScreenState extends ConsumerState<InvoicesScreen> {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           OutlinedButton.icon(
-                            onPressed: () => _handleExport(context, allInvoices),
+                            onPressed: () {
+                              final currentInvoices = ref.read(invoiceNotifierProvider);
+                              _handleExport(context, currentInvoices);
+                            },
                             style: OutlinedButton.styleFrom(
                               side: const BorderSide(color: AppColors.border),
                               padding: const EdgeInsets.symmetric(
@@ -208,35 +206,60 @@ class _InvoicesScreenState extends ConsumerState<InvoicesScreen> {
                   ),
                   const SizedBox(height: AppSpacing.xxl),
 
-                  // ── Summary chips ───────────────────────────────────────────
-                  _SummaryChips(invoices: allInvoices),
-                  const SizedBox(height: AppSpacing.lg),
-
-                  // ── Filter bar ──────────────────────────────────────────────
-                  _filterBar(),
-                  const SizedBox(height: AppSpacing.lg),
-
                   // ── Invoice list ────────────────────────────────────────────
-                  filtered.isEmpty
-                      ? _EmptyState(
-                          hasFilter: _searchCtrl.text.isNotEmpty ||
-                              _filterStatus != null,
-                        )
-                      : _InvoiceDataTable(
-                          invoices: filtered,
-                          onDelete: _confirmDelete,
-                        ),
+                  asyncInvoices.when(
+                    loading: () => const LoadingPlaceholder(
+                        message: 'Loading invoices...'),
+                    error: (err, stack) => Center(child: Text('Error: $err')),
+                    data: (allInvoices) {
+                      final filtered = allInvoices.where((inv) {
+                        final q = _searchCtrl.text.toLowerCase();
+                        final matchesSearch = q.isEmpty ||
+                            inv.invoiceNo.toLowerCase().contains(q) ||
+                            inv.customerName.toLowerCase().contains(q);
+                        final matchesStatus =
+                            _filterStatus == null || inv.status == _filterStatus;
+                        return matchesSearch && matchesStatus;
+                      }).toList()
+                        ..sort((a, b) => b.invoiceDate.compareTo(a.invoiceDate));
 
-                  // Footer count
-                  if (filtered.isNotEmpty)
-                    Padding(
-                      padding: const EdgeInsets.only(top: AppSpacing.sm),
-                      child: Text(
-                        'Total Invoices: ${filtered.length}',
-                        style: AppTextStyles.caption
-                            .copyWith(color: AppColors.textSecondary),
-                      ),
-                    ),
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _SummaryChips(invoices: allInvoices),
+                          const SizedBox(height: AppSpacing.lg),
+                          _filterBar(),
+                          const SizedBox(height: AppSpacing.lg),
+                          
+                          if (filtered.isEmpty)
+                            EmptyStatePlaceholder(
+                              icon: Icons.receipt_long_outlined,
+                              title: 'No invoices found',
+                              message: (_searchCtrl.text.isNotEmpty || _filterStatus != null)
+                                  ? 'No invoices matched your search.'
+                                  : 'No invoices yet.\nTap "Create Invoice" to get started.',
+                              actionLabel: 'Create Invoice',
+                              onAction: () => context.push(AppRoutes.newInvoice),
+                            )
+                          else
+                            _InvoiceDataTable(
+                              invoices: filtered,
+                              onDelete: _confirmDelete,
+                            ),
+                          
+                          if (filtered.isNotEmpty)
+                            Padding(
+                              padding: const EdgeInsets.only(top: AppSpacing.sm),
+                              child: Text(
+                                'Total Invoices: ${filtered.length}',
+                                style: AppTextStyles.caption
+                                    .copyWith(color: AppColors.textSecondary),
+                              ),
+                            ),
+                        ],
+                      );
+                    },
+                  ),
                 ],
               ),
             ),
@@ -568,34 +591,3 @@ class _InvoiceStatusBadge extends StatelessWidget {
   }
 }
 
-// ─── Empty State ──────────────────────────────────────────────────────────────
-
-class _EmptyState extends StatelessWidget {
-  const _EmptyState({required this.hasFilter});
-  final bool hasFilter;
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.xxl),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.receipt_long_outlined,
-                size: 72, color: AppColors.textHint),
-            const SizedBox(height: AppSpacing.lg),
-            Text(
-              hasFilter
-                  ? 'No invoices matched your search.'
-                  : 'No invoices yet.\nTap "Create Invoice" to get started.',
-              textAlign: TextAlign.center,
-              style: AppTextStyles.bodyMedium.copyWith(
-                  color: AppColors.textSecondary, height: 1.6),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}

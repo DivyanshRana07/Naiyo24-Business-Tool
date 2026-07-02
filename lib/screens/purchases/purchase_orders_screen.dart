@@ -11,6 +11,14 @@ import '../../routes/app_routes.dart';
 import '../../widgets/dashboard_app_bar.dart';
 import '../../widgets/side_navigation.dart';
 import '../../widgets/export_dialog.dart';
+import '../../widgets/empty_state_placeholder.dart';
+import '../../widgets/loading_placeholder.dart';
+
+final asyncPurchaseOrderProvider = FutureProvider.autoDispose((ref) async {
+  await Future.delayed(const Duration(seconds: 1));
+  return ref.watch(purchaseOrderNotifierProvider);
+});
+
 
 class PurchaseOrdersScreen extends ConsumerStatefulWidget {
   const PurchaseOrdersScreen({super.key});
@@ -61,15 +69,8 @@ class _PurchaseOrdersScreenState extends ConsumerState<PurchaseOrdersScreen> {
   @override
   Widget build(BuildContext context) {
     final authState = ref.watch(authNotifierProvider);
-    final pos = ref.watch(purchaseOrderNotifierProvider);
-    final filteredPos = _filterStatus == null
-        ? pos
-        : pos.where((p) => p.status == _filterStatus).toList();
+    final asyncPos = ref.watch(asyncPurchaseOrderProvider);
     final isDesktop = MediaQuery.of(context).size.width >= 900;
-
-    final totalUnpayed = pos
-        .where((p) => p.status == POStatus.unpayed)
-        .fold(0.0, (sum, p) => sum + p.totalAmount);
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -146,7 +147,13 @@ class _PurchaseOrdersScreenState extends ConsumerState<PurchaseOrdersScreen> {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           OutlinedButton.icon(
-                            onPressed: () => _handleExport(context, filteredPos),
+                            onPressed: () {
+                              final currentPos = ref.read(purchaseOrderNotifierProvider);
+                              final currentFiltered = _filterStatus == null
+                                  ? currentPos
+                                  : currentPos.where((p) => p.status == _filterStatus).toList();
+                              _handleExport(context, currentFiltered);
+                            },
                             style: OutlinedButton.styleFrom(
                               side: const BorderSide(color: AppColors.border),
                               padding: const EdgeInsets.symmetric(
@@ -197,153 +204,159 @@ class _PurchaseOrdersScreenState extends ConsumerState<PurchaseOrdersScreen> {
                   const SizedBox(height: AppSpacing.xl),
 
                   // Table
-                  if (pos.isEmpty)
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(AppSpacing.xxl),
-                      decoration: BoxDecoration(
-                        color: AppColors.surface,
-                        borderRadius: BorderRadius.circular(AppBorderRadius.xl),
-                        border: Border.all(color: AppColors.border),
-                      ),
-                      child: Center(
-                        child: Column(
-                          children: [
-                            Icon(Icons.shopping_bag_outlined, size: 64, color: AppColors.textSecondary.withValues(alpha: 0.4)),
-                            const SizedBox(height: AppSpacing.lg),
-                            Text('No purchase orders found.', style: AppTextStyles.h3),
-                            const SizedBox(height: AppSpacing.sm),
-                            Text('Create a new purchase order to track expenses.', style: AppTextStyles.bodyMedium),
-                          ],
-                        ),
-                      ),
-                    )
-                  else
-                    Container(
-                      width: double.infinity,
-                      decoration: BoxDecoration(
-                        color: AppColors.surface,
-                        borderRadius: BorderRadius.circular(AppBorderRadius.xl),
-                        border: Border.all(color: AppColors.border),
-                      ),
-                      clipBehavior: Clip.hardEdge,
-                      child: DataTable(
-                        headingRowColor: WidgetStateProperty.all(AppColors.surfaceVariant),
-                        headingTextStyle: AppTextStyles.caption.copyWith(
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.textSecondary,
-                          letterSpacing: 0.5,
-                        ),
-                        dividerThickness: 1,
-                        dataRowMaxHeight: 64,
-                        dataRowMinHeight: 64,
-                        columns: const [
-                          DataColumn(label: Text('PO NUMBER')),
-                          DataColumn(label: Text('DATE')),
-                          DataColumn(label: Text('VENDOR')),
-                          DataColumn(label: Text('TOTAL AMOUNT')),
-                          DataColumn(label: Text('STATUS')),
-                        ],
-                        rows: filteredPos.map((po) {
-                          final isPayed = po.status == POStatus.payed;
-                          return DataRow(
-                            cells: [
-                              DataCell(Text(po.poNumber, style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.w600))),
-                              DataCell(Text(DateFormat('MMM dd, yyyy').format(po.date), style: AppTextStyles.bodyMedium)),
-                              DataCell(Text(po.vendorName, style: AppTextStyles.bodyMedium)),
-                              DataCell(Text('₹${po.totalAmount.toStringAsFixed(2)}', style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.w600))),
-                              DataCell(
-                                Tooltip(
-                                  message: 'Tap to toggle status',
-                                  child: InkWell(
-                                    onTap: () => ref.read(purchaseOrderNotifierProvider.notifier).toggleStatus(po.id),
-                                    borderRadius: BorderRadius.circular(100),
-                                    child: Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                                      decoration: BoxDecoration(
-                                        color: isPayed
-                                            ? AppColors.success.withValues(alpha: 0.1)
-                                            : AppColors.error.withValues(alpha: 0.1),
-                                        borderRadius: BorderRadius.circular(100),
-                                        border: Border.all(
-                                          color: isPayed ? AppColors.success : AppColors.error,
-                                        ),
-                                      ),
-                                      child: Row(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          Icon(
-                                            isPayed ? Icons.check_circle_rounded : Icons.warning_rounded,
-                                            size: 14,
-                                            color: isPayed ? AppColors.success : AppColors.error,
-                                          ),
-                                          const SizedBox(width: 6),
-                                          Text(
-                                            isPayed ? 'Paid' : 'Unpaid',
-                                            style: AppTextStyles.labelLarge.copyWith(
-                                              color: isPayed ? AppColors.success : AppColors.error,
-                                              fontSize: 12,
+                  asyncPos.when(
+                    loading: () => const LoadingPlaceholder(
+                        message: 'Loading purchase orders...'),
+                    error: (err, stack) => Center(child: Text('Error: $err')),
+                    data: (pos) {
+                      final filteredPos = _filterStatus == null
+                          ? pos
+                          : pos.where((p) => p.status == _filterStatus).toList();
+
+                      final totalUnpayed = pos
+                          .where((p) => p.status == POStatus.unpayed)
+                          .fold(0.0, (sum, p) => sum + p.totalAmount);
+
+                      if (pos.isEmpty) {
+                        return EmptyStatePlaceholder(
+                          icon: Icons.shopping_bag_outlined,
+                          title: 'No purchase orders found',
+                          message: 'Create a new purchase order to track expenses.',
+                          actionLabel: 'Create PO',
+                          onAction: () => context.push(AppRoutes.newPurchaseOrder),
+                        );
+                      }
+
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Container(
+                            width: double.infinity,
+                            decoration: BoxDecoration(
+                              color: AppColors.surface,
+                              borderRadius: BorderRadius.circular(AppBorderRadius.xl),
+                              border: Border.all(color: AppColors.border),
+                            ),
+                            clipBehavior: Clip.hardEdge,
+                            child: DataTable(
+                              headingRowColor: WidgetStateProperty.all(AppColors.surfaceVariant),
+                              headingTextStyle: AppTextStyles.caption.copyWith(
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.textSecondary,
+                                letterSpacing: 0.5,
+                              ),
+                              dividerThickness: 1,
+                              dataRowMaxHeight: 64,
+                              dataRowMinHeight: 64,
+                              columns: const [
+                                DataColumn(label: Text('PO NUMBER')),
+                                DataColumn(label: Text('DATE')),
+                                DataColumn(label: Text('VENDOR')),
+                                DataColumn(label: Text('TOTAL AMOUNT')),
+                                DataColumn(label: Text('STATUS')),
+                              ],
+                              rows: filteredPos.map((po) {
+                                final isPayed = po.status == POStatus.payed;
+                                return DataRow(
+                                  cells: [
+                                    DataCell(Text(po.poNumber, style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.w600))),
+                                    DataCell(Text(DateFormat('MMM dd, yyyy').format(po.date), style: AppTextStyles.bodyMedium)),
+                                    DataCell(Text(po.vendorName, style: AppTextStyles.bodyMedium)),
+                                    DataCell(Text('₹${po.totalAmount.toStringAsFixed(2)}', style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.w600))),
+                                    DataCell(
+                                      Tooltip(
+                                        message: 'Tap to toggle status',
+                                        child: InkWell(
+                                          onTap: () => ref.read(purchaseOrderNotifierProvider.notifier).toggleStatus(po.id),
+                                          borderRadius: BorderRadius.circular(100),
+                                          child: Container(
+                                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                            decoration: BoxDecoration(
+                                              color: isPayed
+                                                  ? AppColors.success.withValues(alpha: 0.1)
+                                                  : AppColors.error.withValues(alpha: 0.1),
+                                              borderRadius: BorderRadius.circular(100),
+                                              border: Border.all(
+                                                color: isPayed ? AppColors.success : AppColors.error,
+                                              ),
+                                            ),
+                                            child: Row(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                Icon(
+                                                  isPayed ? Icons.check_circle_rounded : Icons.warning_rounded,
+                                                  size: 14,
+                                                  color: isPayed ? AppColors.success : AppColors.error,
+                                                ),
+                                                const SizedBox(width: 6),
+                                                Text(
+                                                  isPayed ? 'Paid' : 'Unpaid',
+                                                  style: AppTextStyles.labelLarge.copyWith(
+                                                    color: isPayed ? AppColors.success : AppColors.error,
+                                                    fontSize: 12,
+                                                  ),
+                                                ),
+                                              ],
                                             ),
                                           ),
-                                        ],
+                                        ),
                                       ),
                                     ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          );
-                        }).toList(),
-                      ),
-                    ),
-
-                  const SizedBox(height: AppSpacing.xxl),
-
-                  // Total Unpaid Summary Banner
-                  Container(
-                    padding: const EdgeInsets.all(AppSpacing.xl),
-                    decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: [Color(0xFF6D28D9), Color(0xFF7C3AED)],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                      borderRadius: BorderRadius.circular(AppBorderRadius.xl),
-                      boxShadow: [
-                        BoxShadow(
-                          color: const Color(0xFF6D28D9).withValues(alpha: 0.3),
-                          blurRadius: 12,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
-                    ),
-                    child: Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(AppSpacing.md),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.2),
-                            shape: BoxShape.circle,
+                                  ],
+                                );
+                              }).toList(),
+                            ),
                           ),
-                          child: const Icon(Icons.account_balance_wallet_rounded, color: Colors.white, size: 32),
-                        ),
-                        const SizedBox(width: AppSpacing.lg),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Total Unpaid Balance',
-                              style: AppTextStyles.labelLarge.copyWith(color: Colors.white.withValues(alpha: 0.8)),
+                          const SizedBox(height: AppSpacing.xxl),
+                          // Total Unpaid Summary Banner
+                          Container(
+                            padding: const EdgeInsets.all(AppSpacing.xl),
+                            decoration: BoxDecoration(
+                              gradient: const LinearGradient(
+                                colors: [Color(0xFF6D28D9), Color(0xFF7C3AED)],
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                              ),
+                              borderRadius: BorderRadius.circular(AppBorderRadius.xl),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: const Color(0xFF6D28D9).withValues(alpha: 0.3),
+                                  blurRadius: 12,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
                             ),
-                            const SizedBox(height: 4),
-                            Text(
-                              '₹${totalUnpayed.toStringAsFixed(2)}',
-                              style: AppTextStyles.h1.copyWith(color: Colors.white, fontSize: 32),
+                            child: Row(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(AppSpacing.md),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withValues(alpha: 0.2),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: const Icon(Icons.account_balance_wallet_rounded, color: Colors.white, size: 32),
+                                ),
+                                const SizedBox(width: AppSpacing.lg),
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Total Unpaid Balance',
+                                      style: AppTextStyles.labelLarge.copyWith(color: Colors.white.withValues(alpha: 0.8)),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      '₹${totalUnpayed.toStringAsFixed(2)}',
+                                      style: AppTextStyles.h1.copyWith(color: Colors.white, fontSize: 32),
+                                    ),
+                                  ],
+                                ),
+                              ],
                             ),
-                          ],
-                        ),
-                      ],
-                    ),
+                          ),
+                        ],
+                      );
+                    },
                   ),
                 ],
               ),

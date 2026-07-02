@@ -14,6 +14,10 @@ class ChatSupportPopup extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final size = MediaQuery.of(context).size;
+    final maxWidth = size.width - 48; // 24px padding on both sides
+    final maxHeight = size.height - 120; // safe area + padding
+
     return Align(
       alignment: Alignment.bottomRight,
       child: Padding(
@@ -21,8 +25,8 @@ class ChatSupportPopup extends StatelessWidget {
         child: Material(
           color: Colors.transparent,
           child: Container(
-            width: 360,
-            height: 640,
+            width: maxWidth < 360 ? maxWidth : 360,
+            height: maxHeight < 640 ? maxHeight : 640,
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(AppBorderRadius.lg),
@@ -40,7 +44,7 @@ class ChatSupportPopup extends StatelessWidget {
               children: [
                 _buildHeader(context),
                 Expanded(child: _buildMessagesArea()),
-                _buildInputArea(),
+                _buildInputArea(context),
                 _buildFooter(),
               ],
             ),
@@ -170,7 +174,7 @@ class ChatSupportPopup extends StatelessWidget {
     );
   }
 
-  Widget _buildInputArea() {
+  Widget _buildInputArea(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
       color: Colors.white,
@@ -196,26 +200,43 @@ class ChatSupportPopup extends StatelessWidget {
               children: [
                 IconButton(
                   icon: const Icon(Icons.emoji_emotions_outlined, color: AppColors.textSecondary),
-                  onPressed: () {},
+                  onPressed: () {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Emojis coming soon')),
+                    );
+                  },
                   padding: EdgeInsets.zero,
                   constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
                 ),
                 IconButton(
                   icon: const Icon(Icons.attach_file_rounded, color: AppColors.textSecondary),
-                  onPressed: () {},
+                  onPressed: () {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Attachments coming soon')),
+                    );
+                  },
                   padding: EdgeInsets.zero,
                   constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
                 ),
                 IconButton(
                   icon: const Icon(Icons.graphic_eq_rounded, color: AppColors.textSecondary), // Audio icon equivalent
-                  onPressed: () {},
+                  onPressed: () {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Voice messages coming soon')),
+                    );
+                  },
                   padding: EdgeInsets.zero,
                   constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
                 ),
                 const Spacer(),
                 IconButton(
                   icon: const Icon(Icons.send_rounded, color: Color(0xFFC4B5FD)),
-                  onPressed: () {},
+                  onPressed: () {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Message sent!')),
+                    );
+                    Navigator.of(context).pop();
+                  },
                   padding: EdgeInsets.zero,
                   constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
                 ),

@@ -66,39 +66,43 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: Stack(
-        children: [
-          Column(
-            children: [
-              AuthHeader(
-                showRegister: true,
-                onRegisterTap: () => context.go(AppRoutes.signup),
-              ),
-              Expanded(
-                child: LayoutBuilder(
-                  builder: (context, constraints) {
-                    return SingleChildScrollView(
-                      physics: const BouncingScrollPhysics(),
-                      child: ConstrainedBox(
-                        constraints: BoxConstraints(
-                          minHeight: constraints.maxHeight,
-                        ),
-                        child: _LoginBody(
-                          formKey: _formKey,
-                          emailController: _emailController,
-                          passwordController: _passwordController,
-                          isLoading: _isLoading,
-                          onLogin: _handleLogin,
-                        ),
+      body: SafeArea(
+        child: Stack(
+          children: [
+            LayoutBuilder(
+              builder: (context, constraints) {
+                return SingleChildScrollView(
+                  physics: const BouncingScrollPhysics(),
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      minHeight: constraints.maxHeight,
+                    ),
+                    child: IntrinsicHeight(
+                      child: Column(
+                        children: [
+                          AuthHeader(
+                            showRegister: true,
+                            onRegisterTap: () => context.go(AppRoutes.signup),
+                          ),
+                          Expanded(
+                            child: _LoginBody(
+                              formKey: _formKey,
+                              emailController: _emailController,
+                              passwordController: _passwordController,
+                              isLoading: _isLoading,
+                              onLogin: _handleLogin,
+                            ),
+                          ),
+                        ],
                       ),
-                    );
-                  },
-                ),
-              ),
-            ],
-          ),
-          const FloatingChatButton(),
-        ],
+                    ),
+                  ),
+                );
+              },
+            ),
+            const FloatingChatButton(),
+          ],
+        ),
       ),
     );
   }
@@ -284,7 +288,11 @@ class _LoginCard extends StatelessWidget {
             Align(
               alignment: Alignment.centerRight,
               child: TextButton(
-                onPressed: () {},
+                onPressed: () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Forgot Password coming soon')),
+                  );
+                },
                 style: TextButton.styleFrom(
                   padding: EdgeInsets.zero,
                   minimumSize: Size.zero,

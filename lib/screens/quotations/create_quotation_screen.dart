@@ -697,7 +697,11 @@ class _CreateQuotationScreenState
           _summaryRow('Taxable Amount', _taxableAmount),
           _summaryRow('GST', _totalGst),
           InkWell(
-            onTap: () {},
+            onTap: () {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Add Tax coming soon')),
+              );
+            },
             child: Padding(
               padding: const EdgeInsets.symmetric(vertical: 4),
               child: Row(

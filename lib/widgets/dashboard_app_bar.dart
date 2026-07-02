@@ -44,15 +44,17 @@ class DashboardAppBar extends ConsumerWidget implements PreferredSizeWidget {
                 }
               },
             )
-          : IconButton(
-              icon: const Icon(Icons.menu_rounded, color: Colors.white),
-              onPressed: () {
-                if (MediaQuery.of(context).size.width < 900) {
-                  Scaffold.of(context).openDrawer();
-                } else {
-                  ref.read(sidebarExpandedProvider.notifier).toggle();
-                }
-              },
+          : Builder(
+              builder: (innerContext) => IconButton(
+                icon: const Icon(Icons.menu_rounded, color: Colors.white),
+                onPressed: () {
+                  if (MediaQuery.of(innerContext).size.width < 900) {
+                    Scaffold.of(innerContext).openDrawer();
+                  } else {
+                    ref.read(sidebarExpandedProvider.notifier).toggle();
+                  }
+                },
+              ),
             ),
       flexibleSpace: Container(
         decoration: const BoxDecoration(

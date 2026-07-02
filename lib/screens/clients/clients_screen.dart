@@ -11,6 +11,13 @@ import '../../widgets/side_navigation.dart';
 import '../../widgets/dashboard_app_bar.dart';
 import 'widgets/customer_form_dialog.dart';
 import '../../widgets/export_dialog.dart';
+import '../../widgets/empty_state_placeholder.dart';
+import '../../widgets/loading_placeholder.dart';
+
+final asyncCustomersProvider = FutureProvider.autoDispose((ref) async {
+  await Future.delayed(const Duration(seconds: 1));
+  return ref.watch(customerNotifierProvider);
+});
 
 /// Customer / Client management screen.
 class ClientsScreen extends ConsumerStatefulWidget {
@@ -76,11 +83,8 @@ class _ClientsScreenState extends ConsumerState<ClientsScreen> {
   @override
   Widget build(BuildContext context) {
     final authState = ref.watch(authNotifierProvider);
-    final all = ref.watch(customerNotifierProvider);
+    final asyncCustomers = ref.watch(asyncCustomersProvider);
     final query = _searchCtrl.text;
-    final customers = query.isEmpty
-        ? all
-        : ref.read(customerNotifierProvider.notifier).search(query);
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -152,7 +156,10 @@ class _ClientsScreenState extends ConsumerState<ClientsScreen> {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           OutlinedButton.icon(
-                            onPressed: () => _handleExport(context, customers),
+                            onPressed: () {
+                              final currentCustomers = ref.read(customerNotifierProvider);
+                              _handleExport(context, currentCustomers);
+                            },
                             style: OutlinedButton.styleFrom(
                               side: const BorderSide(color: AppColors.border),
                               padding: const EdgeInsets.symmetric(
@@ -206,26 +213,47 @@ class _ClientsScreenState extends ConsumerState<ClientsScreen> {
 
                   // ── Table ──────────────────────────────────────────────────
                   Expanded(
-                    child: customers.isEmpty
-                        ? _EmptyState(
+                    child: asyncCustomers.when(
+                      loading: () => const LoadingPlaceholder(
+                          message: 'Loading clients...'),
+                      error: (err, stack) => Center(child: Text('Error: $err')),
+                      data: (allCustomers) {
+                        final customers = query.isEmpty
+                            ? allCustomers
+                            : ref.read(customerNotifierProvider.notifier).search(query);
+
+                        if (customers.isEmpty) {
+                          return EmptyStatePlaceholder(
+                            icon: Icons.people_outline,
+                            title: 'No clients found',
                             message: query.isEmpty
                                 ? 'No clients yet.\nTap "Add New Client" to add your first customer.'
                                 : 'No clients matched "$query".',
-                          )
-                        : _CustomerDataTable(
-                            customers: customers,
-                            onEdit: (c) => _showCustomerDialog(existing: c),
-                            onDelete: (c) => _confirmDelete(c),
-                          ),
-                  ),
+                            actionLabel: 'Add New Client',
+                            onAction: () => context.push(AppRoutes.newClient),
+                          );
+                        }
 
-                  // ── Footer count ───────────────────────────────────────────
-                  Padding(
-                    padding: const EdgeInsets.only(top: AppSpacing.sm),
-                    child: Text(
-                      'Total Customers: ${customers.length}',
-                      style: AppTextStyles.caption
-                          .copyWith(color: AppColors.textSecondary),
+                        return Column(
+                          children: [
+                            Expanded(
+                              child: _CustomerDataTable(
+                                customers: customers,
+                                onEdit: (c) => _showCustomerDialog(existing: c),
+                                onDelete: (c) => _confirmDelete(c),
+                              ),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.only(top: AppSpacing.sm),
+                              child: Text(
+                                'Total Customers: ${customers.length}',
+                                style: AppTextStyles.caption
+                                    .copyWith(color: AppColors.textSecondary),
+                              ),
+                            ),
+                          ],
+                        );
+                      },
                     ),
                   ),
                 ],
@@ -429,26 +457,4 @@ class _ActionIcon extends StatelessWidget {
   }
 }
 
-class _EmptyState extends StatelessWidget {
-  const _EmptyState({required this.message});
-  final String message;
 
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const Icon(Icons.people_outline, size: 64, color: AppColors.textHint),
-          const SizedBox(height: AppSpacing.md),
-          Text(
-            message,
-            textAlign: TextAlign.center,
-            style: AppTextStyles.bodyMedium.copyWith(
-                color: AppColors.textSecondary, height: 1.6),
-          ),
-        ],
-      ),
-    );
-  }
-}

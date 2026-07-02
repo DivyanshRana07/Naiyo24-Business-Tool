@@ -39,7 +39,11 @@ class _BasicDetailsFormState extends State<BasicDetailsForm> {
         Align(
           alignment: Alignment.centerLeft,
           child: TextButton.icon(
-            onPressed: () {},
+            onPressed: () {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Add Brand name coming soon')),
+              );
+            },
             icon: const Icon(Icons.add_box_outlined, color: Color(0xFF7C3AED), size: 18),
             label: Text(
               "Add Brand or Display name",

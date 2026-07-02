@@ -14,6 +14,18 @@ import '../../widgets/dashboard_app_bar.dart';
 import 'widgets/product_form_dialog.dart';
 import 'widgets/service_form_dialog.dart';
 import '../../widgets/export_dialog.dart';
+import '../../widgets/empty_state_placeholder.dart';
+import '../../widgets/loading_placeholder.dart';
+
+final asyncProductsProvider = FutureProvider.autoDispose((ref) async {
+  await Future.delayed(const Duration(seconds: 1));
+  return ref.watch(productNotifierProvider);
+});
+
+final asyncServicesProvider = FutureProvider.autoDispose((ref) async {
+  await Future.delayed(const Duration(seconds: 1));
+  return ref.watch(serviceNotifierProvider);
+});
 
 /// Products & Services management screen.
 /// Uses a [TabBar] to switch between the Product list and Service list.
@@ -317,11 +329,8 @@ class _ProductTabState extends ConsumerState<_ProductTab> {
 
   @override
   Widget build(BuildContext context) {
-    final all = ref.watch(productNotifierProvider);
+    final asyncProducts = ref.watch(asyncProductsProvider);
     final query = widget.searchController.text;
-    final products = query.isEmpty
-        ? all
-        : ref.read(productNotifierProvider.notifier).search(query);
 
     return Padding(
       padding: const EdgeInsets.all(AppSpacing.xl),
@@ -339,38 +348,60 @@ class _ProductTabState extends ConsumerState<_ProductTab> {
 
           // Table
           Expanded(
-            child: products.isEmpty
-                ? _EmptyState(
+            child: asyncProducts.when(
+              loading: () => const LoadingPlaceholder(
+                  message: 'Loading products...'),
+              error: (err, stack) => Center(child: Text('Error: $err')),
+              data: (all) {
+                final products = query.isEmpty
+                    ? all
+                    : ref.read(productNotifierProvider.notifier).search(query);
+
+                if (products.isEmpty) {
+                  return EmptyStatePlaceholder(
                     icon: Icons.inventory_2_outlined,
+                    title: 'No products found',
                     message: query.isEmpty
                         ? 'No products yet.\nTap "Add New Product" to get started.'
                         : 'No products matched "$query".',
-                  )
-                : _ProductDataTable(
-                    products: products,
-                    onEdit: (p) => widget.onEdit(existing: p),
-                    onDelete: (p) => _confirmDelete(
-                      context,
-                      name: p.name,
-                      onConfirm: () => ref
-                          .read(productNotifierProvider.notifier)
-                          .deleteProduct(p.id),
-                    ),
-                  ),
-          ),
+                    actionLabel: 'Add New Product',
+                    onAction: () => context.push(AppRoutes.newProduct),
+                  );
+                }
 
-          // Footer count
-          Padding(
-            padding: const EdgeInsets.only(top: AppSpacing.sm),
-            child: Align(
-              alignment: Alignment.centerLeft,
-              child: Text(
-                'Total Products: ${products.length}',
-                style: AppTextStyles.caption
-                    .copyWith(color: AppColors.textSecondary),
-              ),
+                return Column(
+                  children: [
+                    Expanded(
+                      child: _ProductDataTable(
+                        products: products,
+                        onEdit: (p) => widget.onEdit(existing: p),
+                        onDelete: (p) => _confirmDelete(
+                          context,
+                          name: p.name,
+                          onConfirm: () => ref
+                              .read(productNotifierProvider.notifier)
+                              .deleteProduct(p.id),
+                        ),
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.only(top: AppSpacing.sm),
+                      child: Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          'Total Products: ${products.length}',
+                          style: AppTextStyles.caption
+                              .copyWith(color: AppColors.textSecondary),
+                        ),
+                      ),
+                    ),
+                  ],
+                );
+              },
             ),
           ),
+
+
         ],
       ),
     );
@@ -401,11 +432,8 @@ class _ServiceTabState extends ConsumerState<_ServiceTab> {
 
   @override
   Widget build(BuildContext context) {
-    final all = ref.watch(serviceNotifierProvider);
+    final asyncServices = ref.watch(asyncServicesProvider);
     final query = widget.searchController.text;
-    final services = query.isEmpty
-        ? all
-        : ref.read(serviceNotifierProvider.notifier).search(query);
 
     return Padding(
       padding: const EdgeInsets.all(AppSpacing.xl),
@@ -420,34 +448,54 @@ class _ServiceTabState extends ConsumerState<_ServiceTab> {
           ),
           const SizedBox(height: AppSpacing.lg),
           Expanded(
-            child: services.isEmpty
-                ? _EmptyState(
+            child: asyncServices.when(
+              loading: () => const LoadingPlaceholder(
+                  message: 'Loading services...'),
+              error: (err, stack) => Center(child: Text('Error: $err')),
+              data: (all) {
+                final services = query.isEmpty
+                    ? all
+                    : ref.read(serviceNotifierProvider.notifier).search(query);
+
+                if (services.isEmpty) {
+                  return EmptyStatePlaceholder(
                     icon: Icons.miscellaneous_services_outlined,
+                    title: 'No services found',
                     message: query.isEmpty
                         ? 'No services yet.\nTap "Add New Service" to get started.'
                         : 'No services matched "$query".',
-                  )
-                : _ServiceDataTable(
-                    services: services,
-                    onEdit: (s) => widget.onEdit(existing: s),
-                    onDelete: (s) => _confirmDelete(
-                      context,
-                      name: s.name,
-                      onConfirm: () => ref
-                          .read(serviceNotifierProvider.notifier)
-                          .deleteService(s.id),
+                  );
+                }
+
+                return Column(
+                  children: [
+                    Expanded(
+                      child: _ServiceDataTable(
+                        services: services,
+                        onEdit: (s) => widget.onEdit(existing: s),
+                        onDelete: (s) => _confirmDelete(
+                          context,
+                          name: s.name,
+                          onConfirm: () => ref
+                              .read(serviceNotifierProvider.notifier)
+                              .deleteService(s.id),
+                        ),
+                      ),
                     ),
-                  ),
-          ),
-          Padding(
-            padding: const EdgeInsets.only(top: AppSpacing.sm),
-            child: Align(
-              alignment: Alignment.centerLeft,
-              child: Text(
-                'Total Services: ${services.length}',
-                style: AppTextStyles.caption
-                    .copyWith(color: AppColors.textSecondary),
-              ),
+                    Padding(
+                      padding: const EdgeInsets.only(top: AppSpacing.sm),
+                      child: Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          'Total Services: ${services.length}',
+                          style: AppTextStyles.caption
+                              .copyWith(color: AppColors.textSecondary),
+                        ),
+                      ),
+                    ),
+                  ],
+                );
+              },
             ),
           ),
         ],
@@ -738,30 +786,6 @@ class _ActionIcon extends StatelessWidget {
   }
 }
 
-class _EmptyState extends StatelessWidget {
-  const _EmptyState({required this.icon, required this.message});
-  final IconData icon;
-  final String message;
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 64, color: AppColors.textHint),
-          const SizedBox(height: AppSpacing.md),
-          Text(
-            message,
-            textAlign: TextAlign.center,
-            style: AppTextStyles.bodyMedium
-                .copyWith(color: AppColors.textSecondary, height: 1.6),
-          ),
-        ],
-      ),
-    );
-  }
-}
 
 // ─── Shared delete confirmation ───────────────────────────────────────────────
 

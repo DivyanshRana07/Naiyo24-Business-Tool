@@ -111,52 +111,56 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: Stack(
-        children: [
-          Column(
-            children: [
-              AuthHeader(
-                showLogin: true,
-                onLoginTap: () => context.go(AppRoutes.login),
-              ),
-              Expanded(
-                child: LayoutBuilder(
-                  builder: (context, constraints) {
-                    return SingleChildScrollView(
-                      physics: const BouncingScrollPhysics(),
-                      child: ConstrainedBox(
-                        constraints: BoxConstraints(
-                          minHeight: constraints.maxHeight,
-                        ),
-                        child: _SignupBody(
-                          formKey: _formKey,
-                          fullNameController: _fullNameController,
-                          emailController: _emailController,
-                          phoneController: _phoneController,
-                          passwordController: _passwordController,
-                          isLoading: _isLoading,
-                          agreeToTerms: _agreeToTerms,
-                          selectedCountry: _selectedCountry,
-                          selectedPhoneCode: _selectedPhoneCode,
-                          countries: _countries,
-                          phoneCodes: _phoneCodes,
-                          onCountryChanged: (v) =>
-                              setState(() => _selectedCountry = v),
-                          onPhoneCodeChanged: (v) =>
-                              setState(() => _selectedPhoneCode = v ?? '+91'),
-                          onTermsChanged: (v) =>
-                              setState(() => _agreeToTerms = v ?? false),
-                          onSignup: _handleSignup,
-                        ),
+      body: SafeArea(
+        child: Stack(
+          children: [
+            LayoutBuilder(
+              builder: (context, constraints) {
+                return SingleChildScrollView(
+                  physics: const BouncingScrollPhysics(),
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      minHeight: constraints.maxHeight,
+                    ),
+                    child: IntrinsicHeight(
+                      child: Column(
+                        children: [
+                          AuthHeader(
+                            showLogin: true,
+                            onLoginTap: () => context.go(AppRoutes.login),
+                          ),
+                          Expanded(
+                            child: _SignupBody(
+                              formKey: _formKey,
+                              fullNameController: _fullNameController,
+                              emailController: _emailController,
+                              phoneController: _phoneController,
+                              passwordController: _passwordController,
+                              isLoading: _isLoading,
+                              agreeToTerms: _agreeToTerms,
+                              selectedCountry: _selectedCountry,
+                              selectedPhoneCode: _selectedPhoneCode,
+                              countries: _countries,
+                              phoneCodes: _phoneCodes,
+                              onCountryChanged: (v) =>
+                                  setState(() => _selectedCountry = v),
+                              onPhoneCodeChanged: (v) =>
+                                  setState(() => _selectedPhoneCode = v ?? '+91'),
+                              onTermsChanged: (v) =>
+                                  setState(() => _agreeToTerms = v ?? false),
+                              onSignup: _handleSignup,
+                            ),
+                          ),
+                        ],
                       ),
-                    );
-                  },
-                ),
-              ),
-            ],
-          ),
-          const FloatingChatButton(),
-        ],
+                    ),
+                  ),
+                );
+              },
+            ),
+            const FloatingChatButton(),
+          ],
+        ),
       ),
     );
   }

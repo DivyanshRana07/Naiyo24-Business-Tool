@@ -8,6 +8,7 @@ import '../../notifiers/auth_notifier.dart';
 import '../products/widgets/product_form_dialog.dart';
 import '../../widgets/dashboard_app_bar.dart';
 import '../../widgets/side_navigation.dart';
+import '../../widgets/chat_support_popup.dart';
 
 import '../../cards/stat_card.dart';
 import '../../cards/activity_card.dart';
@@ -66,6 +67,12 @@ class DashboardScreen extends ConsumerWidget {
           ),
         ],
       ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => showChatSupportPopup(context),
+        backgroundColor: const Color(0xFF6D28D9),
+        icon: const Icon(Icons.chat_bubble_outline_rounded, color: Colors.white),
+        label: const Text('Chat Support', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+      ),
     );
   }
 
@@ -95,56 +102,60 @@ class _ProfileHeader extends StatelessWidget {
     const companyName = 'Naiyo24';
     final initial = displayName.isNotEmpty ? displayName[0].toUpperCase() : 'D';
 
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        // ── Large avatar ──────────────────────────────────────────────────────
-        CircleAvatar(
-          radius: 32,
-          backgroundColor: AppColors.primary,
-          child: Text(
-            initial,
-            style: const TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.w700,
-              fontSize: 26,
-            ),
-          ),
-        ),
-        const SizedBox(width: AppSpacing.lg),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isSmall = constraints.maxWidth < 500;
 
-        // ── Greeting text ─────────────────────────────────────────────────────
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Line 1: "Hello <Name>" — regular weight
-              Text(
-                'Hello $displayName',
-                style: AppTextStyles.bodyLarge.copyWith(
-                  color: AppColors.textSecondary,
-                  fontWeight: FontWeight.w400,
-                  fontSize: 15,
-                ),
-              ),
-              const SizedBox(height: 2),
-              // Line 2: "Welcome to <Company>!" — bold, larger
-              Text(
-                'Welcome to $companyName!',
-                style: AppTextStyles.h2.copyWith(
-                  color: AppColors.textPrimary,
+        final avatarAndText = Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            CircleAvatar(
+              radius: 32,
+              backgroundColor: AppColors.primary,
+              child: Text(
+                initial,
+                style: const TextStyle(
+                  color: Colors.white,
                   fontWeight: FontWeight.w700,
-                  fontSize: 20,
+                  fontSize: 26,
                 ),
               ),
-            ],
-          ),
-        ),
+            ),
+            const SizedBox(width: AppSpacing.lg),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'Hello $displayName',
+                    style: AppTextStyles.bodyLarge.copyWith(
+                      color: AppColors.textSecondary,
+                      fontWeight: FontWeight.w400,
+                      fontSize: 15,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    'Welcome to $companyName!',
+                    style: AppTextStyles.h2.copyWith(
+                      color: AppColors.textPrimary,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 20,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        );
 
-        // ── Book a Demo button ────────────────────────────────────────────────
-        FilledButton.icon(
-          onPressed: () {},
+        final button = FilledButton.icon(
+          onPressed: () {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Demo booking coming soon')),
+            );
+          },
           style: FilledButton.styleFrom(
             backgroundColor: const Color(0xFFE91E8C),
             foregroundColor: Colors.white,
@@ -163,8 +174,28 @@ class _ProfileHeader extends StatelessWidget {
               fontSize: 13,
             ),
           ),
-        ),
-      ],
+        );
+
+        if (isSmall) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              avatarAndText,
+              const SizedBox(height: AppSpacing.lg),
+              button,
+            ],
+          );
+        }
+
+        return Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Expanded(child: avatarAndText),
+            const SizedBox(width: AppSpacing.lg),
+            button,
+          ],
+        );
+      },
     );
   }
 }
@@ -356,26 +387,37 @@ class _GettingStartedGrid extends StatelessWidget {
       children: [
         Text('Getting Started', style: AppTextStyles.h2),
         const SizedBox(height: AppSpacing.md),
-        GridView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-            maxCrossAxisExtent: 380,
-            mainAxisSpacing: AppSpacing.lg,
-            crossAxisSpacing: AppSpacing.lg,
-            childAspectRatio: 0.78,
-          ),
-          itemCount: _blocks.length,
-          itemBuilder: (context, i) {
-            final b = _blocks[i];
-            return FeatureBlockCard(
-              icon: b.icon,
-              iconColor: b.iconColor,
-              title: b.title,
-              description: b.description,
-              actionLabel: b.actionLabel,
-              onAction: () => context.push(b.route),
-              onCardTap: () => context.push(b.listRoute),
+        LayoutBuilder(
+          builder: (context, constraints) {
+            final width = constraints.maxWidth;
+            double cardWidth;
+            if (width > 1200) {
+              cardWidth = (width - (AppSpacing.lg * 3)) / 4;
+            } else if (width > 800) {
+              cardWidth = (width - (AppSpacing.lg * 2)) / 3;
+            } else if (width > 500) {
+              cardWidth = (width - AppSpacing.lg) / 2;
+            } else {
+              cardWidth = width;
+            }
+            
+            return Wrap(
+              spacing: AppSpacing.lg,
+              runSpacing: AppSpacing.lg,
+              children: _blocks.map((b) {
+                return SizedBox(
+                  width: cardWidth,
+                  child: FeatureBlockCard(
+                    icon: b.icon,
+                    iconColor: b.iconColor,
+                    title: b.title,
+                    description: b.description,
+                    actionLabel: b.actionLabel,
+                    onAction: () => context.push(b.route),
+                    onCardTap: () => context.push(b.listRoute),
+                  ),
+                );
+              }).toList(),
             );
           },
         ),
