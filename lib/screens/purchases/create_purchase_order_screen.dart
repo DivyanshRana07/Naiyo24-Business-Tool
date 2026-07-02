@@ -160,6 +160,7 @@ class _CreatePurchaseOrderScreenState
     final authState = ref.watch(authNotifierProvider);
     final vendors = ref.watch(vendorNotifierProvider);
     final isDesktop = MediaQuery.of(context).size.width >= 900;
+    final isMobile = MediaQuery.of(context).size.width < 600;
 
     return WillPopScope(
       onWillPop: _onWillPop,
@@ -236,7 +237,7 @@ class _CreatePurchaseOrderScreenState
                       ),
                     ],
                   ),
-                  const SizedBox(height: AppSpacing.xxl),
+                  const SizedBox(height: AppSpacing.md),
 
                   // ── PO Title & Description ──────────────────────────────────
                   _card(
@@ -270,12 +271,12 @@ class _CreatePurchaseOrderScreenState
                   const SizedBox(height: AppSpacing.lg),
 
                   // ── Order By / Order To ─────────────────────────────────────
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Order By
-                      Expanded(
-                        child: _card(
+                  isMobile
+                      ? Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            // Order By
+                            _card(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
@@ -311,12 +312,9 @@ class _CreatePurchaseOrderScreenState
                             ],
                           ),
                         ),
-                      ),
-                      const SizedBox(width: AppSpacing.lg),
-
-                      // Order To
-                      Expanded(
-                        child: _card(
+                            const SizedBox(height: AppSpacing.lg),
+                            // Order To
+                            _card(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
@@ -398,9 +396,109 @@ class _CreatePurchaseOrderScreenState
                             ],
                           ),
                         ),
-                      ),
-                    ],
-                  ),
+                          ],
+                        )
+                      : Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Order By
+                            Expanded(
+                              child: _card(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    _sectionLabel('Order By'),
+                                    const SizedBox(height: AppSpacing.md),
+                                    Row(
+                                      children: [
+                                        CircleAvatar(
+                                          radius: 22,
+                                          backgroundColor: AppColors.primary,
+                                          child: Text(
+                                            authState.userEmail?.isNotEmpty == true
+                                                ? authState.userEmail![0].toUpperCase()
+                                                : 'N',
+                                            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 18),
+                                          ),
+                                        ),
+                                        const SizedBox(width: AppSpacing.md),
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              Text('Naiyo24 Business', style: AppTextStyles.labelLarge.copyWith(fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
+                                              const SizedBox(height: 2),
+                                              Text(authState.userEmail ?? 'admin@naiyo24.com', style: AppTextStyles.bodyMedium),
+                                              const SizedBox(height: 2),
+                                              Text('Sector 62, Noida, India', style: AppTextStyles.bodyMedium.copyWith(color: AppColors.textSecondary)),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: AppSpacing.lg),
+                            // Order To
+                            Expanded(
+                              child: _card(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        _sectionLabel('Order To'),
+                                        TextButton.icon(
+                                          onPressed: () {
+                                            context.push(AppRoutes.newVendor);
+                                          },
+                                          icon: const Icon(Icons.add_rounded, size: 15),
+                                          label: const Text('New Vendor'),
+                                          style: TextButton.styleFrom(
+                                            foregroundColor: AppColors.primary,
+                                            padding: EdgeInsets.zero,
+                                            minimumSize: Size.zero,
+                                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                            textStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: AppSpacing.md),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(AppBorderRadius.sm),
+                                        border: Border.all(color: AppColors.border),
+                                        color: AppColors.background,
+                                      ),
+                                      child: DropdownButtonHideUnderline(
+                                        child: DropdownButton<VendorModel>(
+                                          isExpanded: true,
+                                          value: _selectedVendor,
+                                          hint: Text('Select Vendor', style: AppTextStyles.bodyMedium.copyWith(color: AppColors.textSecondary)),
+                                          icon: const Icon(Icons.arrow_drop_down_rounded, color: AppColors.textSecondary),
+                                          items: vendors.map((v) {
+                                            return DropdownMenuItem<VendorModel>(
+                                              value: v,
+                                              child: Text(v.name, style: AppTextStyles.bodyMedium),
+                                            );
+                                          }).toList(),
+                                          onChanged: (val) {
+                                            setState(() => _selectedVendor = val);
+                                          },
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
                   const SizedBox(height: AppSpacing.lg),
 
                   // ── PO Number & Date ────────────────────────────────────────
@@ -590,36 +688,67 @@ class _CreatePurchaseOrderScreenState
                       borderRadius: BorderRadius.circular(AppBorderRadius.lg),
                       border: Border.all(color: AppColors.border),
                     ),
-                    child: Wrap(
-                      alignment: WrapAlignment.end,
-                      spacing: AppSpacing.md,
-                      children: [
-                        OutlinedButton(
-                          onPressed: () => context.pop(),
-                          style: OutlinedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.md),
-                            side: const BorderSide(color: AppColors.border),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(AppBorderRadius.md),
-                            ),
+                    child: isMobile
+                        ? Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              FilledButton.icon(
+                                onPressed: _savePO,
+                                icon: const Icon(Icons.save_rounded, size: 18),
+                                label: const Text('Submit'),
+                                style: FilledButton.styleFrom(
+                                  backgroundColor: AppColors.primary,
+                                  foregroundColor: Colors.white,
+                                  padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(AppBorderRadius.md),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: AppSpacing.md),
+                              OutlinedButton(
+                                onPressed: () => context.pop(),
+                                style: OutlinedButton.styleFrom(
+                                  padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
+                                  side: const BorderSide(color: AppColors.border),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(AppBorderRadius.md),
+                                  ),
+                                ),
+                                child: const Text('Cancel'),
+                              ),
+                            ],
+                          )
+                        : Row(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              OutlinedButton(
+                                onPressed: () => context.pop(),
+                                style: OutlinedButton.styleFrom(
+                                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.md),
+                                  side: const BorderSide(color: AppColors.border),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(AppBorderRadius.md),
+                                  ),
+                                ),
+                                child: const Text('Cancel'),
+                              ),
+                              const SizedBox(width: AppSpacing.md),
+                              FilledButton.icon(
+                                onPressed: _savePO,
+                                icon: const Icon(Icons.save_rounded, size: 18),
+                                label: const Text('Submit'),
+                                style: FilledButton.styleFrom(
+                                  backgroundColor: AppColors.primary,
+                                  foregroundColor: Colors.white,
+                                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.md),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(AppBorderRadius.md),
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
-                          child: const Text('Cancel'),
-                        ),
-                        FilledButton.icon(
-                          onPressed: _savePO,
-                          icon: const Icon(Icons.save_rounded, size: 18),
-                          label: const Text('Submit'),
-                          style: FilledButton.styleFrom(
-                            backgroundColor: AppColors.primary,
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.md),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(AppBorderRadius.md),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
                   ),
                 ],
               ),

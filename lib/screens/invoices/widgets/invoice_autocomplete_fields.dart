@@ -42,26 +42,32 @@ class CustomerAutocomplete extends ConsumerWidget {
             .search(val.text);
       },
       optionsViewBuilder: (context, onSelected, options) {
+        final screenWidth = MediaQuery.of(context).size.width;
+        final isMobile = screenWidth < 600;
+        final boxWidth = isMobile ? screenWidth - 48 : 400.0;
         return Align(
           alignment: Alignment.topLeft,
-          child: Material(
-            elevation: 6,
-            borderRadius: BorderRadius.circular(AppBorderRadius.md),
-            color: AppColors.surface,
-            child: ConstrainedBox(
-              constraints:
-                  const BoxConstraints(maxHeight: 220, maxWidth: 400),
-              child: ListView.builder(
-                padding: EdgeInsets.zero,
-                shrinkWrap: true,
-                itemCount: options.length,
-                itemBuilder: (ctx, i) {
-                  final c = options.elementAt(i);
-                  return InkWell(
-                    onTap: () => onSelected(c),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 12),
+          child: UnconstrainedBox(
+            alignment: Alignment.topLeft,
+            child: SizedBox(
+              width: boxWidth,
+              child: Material(
+                elevation: 6,
+                borderRadius: BorderRadius.circular(AppBorderRadius.md),
+                color: AppColors.surface,
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxHeight: 220),
+                  child: ListView.builder(
+                    padding: EdgeInsets.zero,
+                    shrinkWrap: true,
+                    itemCount: options.length,
+                    itemBuilder: (ctx, i) {
+                      final c = options.elementAt(i);
+                      return InkWell(
+                        onTap: () => onSelected(c),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 12),
                       child: Row(
                         children: [
                           CircleAvatar(
@@ -99,6 +105,8 @@ class CustomerAutocomplete extends ConsumerWidget {
                 },
               ),
             ),
+          ),
+          ),
           ),
         );
       },
@@ -205,27 +213,33 @@ class _ItemSearchAutocompleteState
         return [...products, ...services];
       },
       optionsViewBuilder: (context, onSelected, options) {
+        final screenWidth = MediaQuery.of(context).size.width;
+        final isMobile = screenWidth < 600;
+        final boxWidth = isMobile ? screenWidth - 48 : 480.0;
         return Align(
           alignment: Alignment.topLeft,
-          child: Material(
-            elevation: 6,
-            borderRadius: BorderRadius.circular(AppBorderRadius.md),
-            color: AppColors.surface,
-            child: ConstrainedBox(
-              constraints:
-                  const BoxConstraints(maxHeight: 240, maxWidth: 480),
-              child: ListView.builder(
-                padding: EdgeInsets.zero,
-                shrinkWrap: true,
-                itemCount: options.length,
-                itemBuilder: (ctx, i) {
-                  final r = options.elementAt(i);
-                  final isProduct = r.type == LineItemType.product;
-                  return InkWell(
-                    onTap: () => onSelected(r),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 10),
+          child: UnconstrainedBox(
+            alignment: Alignment.topLeft,
+            child: SizedBox(
+              width: boxWidth,
+              child: Material(
+                elevation: 6,
+                borderRadius: BorderRadius.circular(AppBorderRadius.md),
+                color: AppColors.surface,
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxHeight: 240),
+                  child: ListView.builder(
+                    padding: EdgeInsets.zero,
+                    shrinkWrap: true,
+                    itemCount: options.length,
+                    itemBuilder: (ctx, i) {
+                      final r = options.elementAt(i);
+                      final isProduct = r.type == LineItemType.product;
+                      return InkWell(
+                        onTap: () => onSelected(r),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 10),
                       child: Row(
                         children: [
                           Container(
@@ -277,6 +291,8 @@ class _ItemSearchAutocompleteState
                 },
               ),
             ),
+          ),
+          ),
           ),
         );
       },

@@ -14,9 +14,15 @@ import '../../widgets/export_dialog.dart';
 import '../../widgets/empty_state_placeholder.dart';
 import '../../widgets/loading_placeholder.dart';
 
+bool _isFirstLoadPO = true;
 final asyncPurchaseOrderProvider = FutureProvider.autoDispose((ref) async {
-  await Future.delayed(const Duration(seconds: 1));
-  return ref.watch(purchaseOrderNotifierProvider);
+  ref.onDispose(() => _isFirstLoadPO = true);
+  final data = ref.watch(purchaseOrderNotifierProvider);
+  if (_isFirstLoadPO) {
+    await Future.delayed(const Duration(seconds: 1));
+    _isFirstLoadPO = false;
+  }
+  return data;
 });
 
 
@@ -238,73 +244,76 @@ class _PurchaseOrdersScreenState extends ConsumerState<PurchaseOrdersScreen> {
                               border: Border.all(color: AppColors.border),
                             ),
                             clipBehavior: Clip.hardEdge,
-                            child: DataTable(
-                              headingRowColor: WidgetStateProperty.all(AppColors.surfaceVariant),
-                              headingTextStyle: AppTextStyles.caption.copyWith(
-                                fontWeight: FontWeight.w700,
-                                color: AppColors.textSecondary,
-                                letterSpacing: 0.5,
-                              ),
-                              dividerThickness: 1,
-                              dataRowMaxHeight: 64,
-                              dataRowMinHeight: 64,
-                              columns: const [
-                                DataColumn(label: Text('PO NUMBER')),
-                                DataColumn(label: Text('DATE')),
-                                DataColumn(label: Text('VENDOR')),
-                                DataColumn(label: Text('TOTAL AMOUNT')),
-                                DataColumn(label: Text('STATUS')),
-                              ],
-                              rows: filteredPos.map((po) {
-                                final isPayed = po.status == POStatus.payed;
-                                return DataRow(
-                                  cells: [
-                                    DataCell(Text(po.poNumber, style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.w600))),
-                                    DataCell(Text(DateFormat('MMM dd, yyyy').format(po.date), style: AppTextStyles.bodyMedium)),
-                                    DataCell(Text(po.vendorName, style: AppTextStyles.bodyMedium)),
-                                    DataCell(Text('₹${po.totalAmount.toStringAsFixed(2)}', style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.w600))),
-                                    DataCell(
-                                      Tooltip(
-                                        message: 'Tap to toggle status',
-                                        child: InkWell(
-                                          onTap: () => ref.read(purchaseOrderNotifierProvider.notifier).toggleStatus(po.id),
-                                          borderRadius: BorderRadius.circular(100),
-                                          child: Container(
-                                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                                            decoration: BoxDecoration(
-                                              color: isPayed
-                                                  ? AppColors.success.withValues(alpha: 0.1)
-                                                  : AppColors.error.withValues(alpha: 0.1),
-                                              borderRadius: BorderRadius.circular(100),
-                                              border: Border.all(
-                                                color: isPayed ? AppColors.success : AppColors.error,
-                                              ),
-                                            ),
-                                            child: Row(
-                                              mainAxisSize: MainAxisSize.min,
-                                              children: [
-                                                Icon(
-                                                  isPayed ? Icons.check_circle_rounded : Icons.warning_rounded,
-                                                  size: 14,
+                            child: SingleChildScrollView(
+                              scrollDirection: Axis.horizontal,
+                              child: DataTable(
+                                headingRowColor: WidgetStateProperty.all(AppColors.surfaceVariant),
+                                headingTextStyle: AppTextStyles.caption.copyWith(
+                                  fontWeight: FontWeight.w700,
+                                  color: AppColors.textSecondary,
+                                  letterSpacing: 0.5,
+                                ),
+                                dividerThickness: 1,
+                                dataRowMaxHeight: 64,
+                                dataRowMinHeight: 64,
+                                columns: const [
+                                  DataColumn(label: Text('PO NUMBER')),
+                                  DataColumn(label: Text('DATE')),
+                                  DataColumn(label: Text('VENDOR')),
+                                  DataColumn(label: Text('TOTAL AMOUNT')),
+                                  DataColumn(label: Text('STATUS')),
+                                ],
+                                rows: filteredPos.map((po) {
+                                  final isPayed = po.status == POStatus.payed;
+                                  return DataRow(
+                                    cells: [
+                                      DataCell(Text(po.poNumber, style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.w600))),
+                                      DataCell(Text(DateFormat('MMM dd, yyyy').format(po.date), style: AppTextStyles.bodyMedium)),
+                                      DataCell(Text(po.vendorName, style: AppTextStyles.bodyMedium)),
+                                      DataCell(Text('₹${po.totalAmount.toStringAsFixed(2)}', style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.w600))),
+                                      DataCell(
+                                        Tooltip(
+                                          message: 'Tap to toggle status',
+                                          child: InkWell(
+                                            onTap: () => ref.read(purchaseOrderNotifierProvider.notifier).toggleStatus(po.id),
+                                            borderRadius: BorderRadius.circular(100),
+                                            child: Container(
+                                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                              decoration: BoxDecoration(
+                                                color: isPayed
+                                                    ? AppColors.success.withValues(alpha: 0.1)
+                                                    : AppColors.error.withValues(alpha: 0.1),
+                                                borderRadius: BorderRadius.circular(100),
+                                                border: Border.all(
                                                   color: isPayed ? AppColors.success : AppColors.error,
                                                 ),
-                                                const SizedBox(width: 6),
-                                                Text(
-                                                  isPayed ? 'Paid' : 'Unpaid',
-                                                  style: AppTextStyles.labelLarge.copyWith(
+                                              ),
+                                              child: Row(
+                                                mainAxisSize: MainAxisSize.min,
+                                                children: [
+                                                  Icon(
+                                                    isPayed ? Icons.check_circle_rounded : Icons.warning_rounded,
+                                                    size: 14,
                                                     color: isPayed ? AppColors.success : AppColors.error,
-                                                    fontSize: 12,
                                                   ),
-                                                ),
-                                              ],
+                                                  const SizedBox(width: 6),
+                                                  Text(
+                                                    isPayed ? 'Paid' : 'Unpaid',
+                                                    style: AppTextStyles.labelLarge.copyWith(
+                                                      color: isPayed ? AppColors.success : AppColors.error,
+                                                      fontSize: 12,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
                                             ),
                                           ),
                                         ),
                                       ),
-                                    ),
-                                  ],
-                                );
-                              }).toList(),
+                                    ],
+                                  );
+                                }).toList(),
+                              ),
                             ),
                           ),
                           const SizedBox(height: AppSpacing.xxl),

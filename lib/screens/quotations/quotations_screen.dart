@@ -12,6 +12,19 @@ import '../../widgets/dashboard_app_bar.dart';
 import '../../widgets/side_navigation.dart';
 import '../../widgets/export_dialog.dart';
 import '../../widgets/send_options_dialog.dart';
+import '../../widgets/empty_state_placeholder.dart';
+import '../../widgets/loading_placeholder.dart';
+
+bool _isFirstLoadQuo = true;
+final asyncQuotationProvider = FutureProvider.autoDispose((ref) async {
+  ref.onDispose(() => _isFirstLoadQuo = true);
+  final data = ref.watch(quotationNotifierProvider);
+  if (_isFirstLoadQuo) {
+    await Future.delayed(const Duration(seconds: 1));
+    _isFirstLoadQuo = false;
+  }
+  return data;
+});
 
 class QuotationsScreen extends ConsumerStatefulWidget {
   const QuotationsScreen({super.key});
@@ -176,14 +189,8 @@ class _QuotationsScreenState extends ConsumerState<QuotationsScreen> {
   @override
   Widget build(BuildContext context) {
     final authState = ref.watch(authNotifierProvider);
-    final allQuotations = ref.watch(quotationNotifierProvider);
+    final asyncQuotations = ref.watch(asyncQuotationProvider);
     final isDesktop = MediaQuery.of(context).size.width >= 900;
-
-    final quotations = allQuotations.where((q) {
-      final query = _searchQuery.toLowerCase();
-      return q.customerName.toLowerCase().contains(query) ||
-             q.quotationNo.toLowerCase().contains(query);
-    }).toList();
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -197,6 +204,12 @@ class _QuotationsScreenState extends ConsumerState<QuotationsScreen> {
               ),
             )
           : null,
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => context.push(AppRoutes.newQuotation),
+        backgroundColor: AppColors.primary,
+        icon: const Icon(Icons.add, color: Colors.white),
+        label: const Text('Create Quotation', style: TextStyle(color: Colors.white)),
+      ),
       body: Row(
         children: [
           if (isDesktop)
@@ -253,7 +266,12 @@ class _QuotationsScreenState extends ConsumerState<QuotationsScreen> {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           OutlinedButton.icon(
-                            onPressed: () => _handleExport(context, quotations),
+                            onPressed: () {
+                               final current = ref.read(quotationNotifierProvider);
+                               final q = _searchQuery.toLowerCase();
+                               final filtered = current.where((c) => c.customerName.toLowerCase().contains(q) || c.quotationNo.toLowerCase().contains(q)).toList();
+                               _handleExport(context, filtered);
+                            },
                             style: OutlinedButton.styleFrom(
                               side: const BorderSide(color: AppColors.border),
                               padding: const EdgeInsets.symmetric(
@@ -298,7 +316,19 @@ class _QuotationsScreenState extends ConsumerState<QuotationsScreen> {
                   const SizedBox(height: AppSpacing.lg),
 
                   // Quotations list / table
-                  _buildQuotationsTable(context, quotations),
+                  asyncQuotations.when(
+                    loading: () => const LoadingPlaceholder(message: 'Loading quotations...'),
+                    error: (err, stack) => Center(child: Text('Error: $err')),
+                    data: (data) {
+                      final filtered = data.where((q) {
+                        final query = _searchQuery.toLowerCase();
+                        return q.customerName.toLowerCase().contains(query) ||
+                               q.quotationNo.toLowerCase().contains(query);
+                      }).toList();
+                      
+                      return _buildQuotationsTable(context, filtered);
+                    },
+                  ),
                 ],
               ),
             ),
@@ -370,213 +400,111 @@ class _QuotationsScreenState extends ConsumerState<QuotationsScreen> {
   }
 
   Widget _buildQuotationsTable(BuildContext context, List<QuotationModel> quotations) {
-    final isDesktop = MediaQuery.of(context).size.width >= 700;
     final formatCurrency = NumberFormat.currency(locale: 'en_IN', symbol: '₹');
     final formatDate = DateFormat('dd MMM yyyy');
 
-    if (!isDesktop) {
-      if (quotations.isEmpty) {
-        return _buildEmptyState();
-      }
-      return ListView.separated(
-        shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics(),
-        itemCount: quotations.length,
-        separatorBuilder: (_, __) => const SizedBox(height: AppSpacing.md),
-        itemBuilder: (_, i) {
-          final q = quotations[i];
-          final statusLabel = _getStatusLabel(q.status);
-          final statusColor = _getStatusColor(q.status);
-          return Container(
-            padding: const EdgeInsets.all(AppSpacing.lg),
-            decoration: BoxDecoration(
-              color: AppColors.surface,
-              borderRadius: BorderRadius.circular(AppBorderRadius.lg),
-              border: Border.all(color: AppColors.border),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(q.quotationNo, style: AppTextStyles.labelLarge),
-                    _buildStatusBadge(statusLabel, statusColor),
-                  ],
-                ),
-                const SizedBox(height: AppSpacing.sm),
-                Text(q.customerName, style: AppTextStyles.h3),
-                const SizedBox(height: AppSpacing.xs),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(formatDate.format(q.quotationDate), style: AppTextStyles.bodyMedium),
-                    Text(formatCurrency.format(q.grandTotal), style: AppTextStyles.labelLarge),
-                  ],
-                ),
-                const SizedBox(height: AppSpacing.md),
-                const Divider(height: 1, color: AppColors.border),
-                const SizedBox(height: AppSpacing.sm),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    TextButton(onPressed: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Edit coming soon')),
-                      );
-                    }, child: const Text('Edit')),
-                    const SizedBox(width: AppSpacing.sm),
-                    TextButton(onPressed: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Convert to Invoice coming soon')),
-                      );
-                    }, child: const Text('Convert to Invoice')),
-                  ],
-                ),
-              ],
-            ),
-          );
-        },
+    if (quotations.isEmpty) {
+      return EmptyStatePlaceholder(
+        icon: Icons.description_outlined,
+        title: 'No quotations found',
+        message: _searchQuery.isNotEmpty 
+            ? 'No quotations matched your search.' 
+            : 'No quotations yet.\nTap "Create Quotation" to get started.',
+        actionLabel: 'Create Quotation',
+        onAction: () => context.push(AppRoutes.newQuotation),
       );
     }
 
-    if (quotations.isEmpty) {
-      return _buildEmptyState();
-    }
-
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(AppBorderRadius.xl),
-        border: Border.all(color: AppColors.border),
-      ),
-      child: Table(
-        columnWidths: const {
-          0: FlexColumnWidth(1.2),
-          1: FlexColumnWidth(2),
-          2: FlexColumnWidth(1.2),
-          3: FlexColumnWidth(1.2),
-          4: FlexColumnWidth(1.2),
-          5: FlexColumnWidth(1.8),
-        },
-        children: [
-          // Table Header
-          TableRow(
-            decoration: const BoxDecoration(
-              color: AppColors.background,
-              borderRadius: BorderRadius.only(
-                topLeft: Radius.circular(AppBorderRadius.xl),
-                topRight: Radius.circular(AppBorderRadius.xl),
-              ),
-            ),
-            children: [
-              _buildHeaderCell('QUOTATION ID'),
-              _buildHeaderCell('CLIENT'),
-              _buildHeaderCell('DATE'),
-              _buildHeaderCell('AMOUNT'),
-              _buildHeaderCell('STATUS'),
-              _buildHeaderCell('ACTIONS', alignRight: true),
-            ],
-          ),
-          // Table Rows
-          ...quotations.map((q) {
-            final statusLabel = _getStatusLabel(q.status);
-            final statusColor = _getStatusColor(q.status);
-            return TableRow(
-              children: [
-                _buildCell(q.quotationNo, isBold: true),
-                _buildCell(q.customerName),
-                _buildCell(formatDate.format(q.quotationDate)),
-                _buildCell(formatCurrency.format(q.grandTotal)),
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: AppSpacing.md, horizontal: AppSpacing.lg),
-                  child: Align(
-                    alignment: Alignment.centerLeft,
-                    child: _buildStatusBadge(statusLabel, statusColor),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm, horizontal: AppSpacing.lg),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.edit_outlined, size: 18),
-                        onPressed: () => _showStatusUpdateDialog(context, q),
-                        tooltip: 'Change Status',
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.send_rounded, size: 18),
-                        onPressed: () => _showSendOptionsDialog(context, q),
-                        tooltip: 'Send Quotation',
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.delete_outline_rounded, size: 18, color: AppColors.error),
-                        onPressed: () {
-                          ref.read(quotationNotifierProvider.notifier).deleteQuotation(q.id);
-                        },
-                        tooltip: 'Delete',
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            );
-          }),
-        ],
-      ),
-    );
-  }
-  
-  Widget _buildEmptyState() {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(AppSpacing.xxl),
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(AppBorderRadius.lg),
-        border: Border.all(color: AppColors.border, style: BorderStyle.solid),
+        border: Border.all(color: AppColors.border),
       ),
-      child: Column(
-        children: [
-          const Icon(Icons.description_outlined,
-              size: 48, color: AppColors.textHint),
-          const SizedBox(height: AppSpacing.md),
-          Text(
-            _searchQuery.isNotEmpty 
-                ? 'No quotations match "$_searchQuery".'
-                : 'No quotations found.\nClick "Create Quotation" to create one.',
-            style: AppTextStyles.bodyMedium
-                .copyWith(color: AppColors.textSecondary),
-            textAlign: TextAlign.center,
+      clipBehavior: Clip.hardEdge,
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: DataTable(
+          headingRowColor: WidgetStateProperty.all(AppColors.surfaceVariant),
+          headingTextStyle: AppTextStyles.caption.copyWith(
+            fontWeight: FontWeight.w700,
+            color: AppColors.textSecondary,
+            letterSpacing: 0.5,
           ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildHeaderCell(String text, {bool alignRight = false}) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: AppSpacing.md, horizontal: AppSpacing.lg),
-      child: Text(
-        text,
-        style: AppTextStyles.labelLarge.copyWith(color: AppColors.textSecondary),
-        textAlign: alignRight ? TextAlign.right : TextAlign.left,
-      ),
-    );
-  }
-
-  Widget _buildCell(String text, {bool isBold = false}) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: AppSpacing.md, horizontal: AppSpacing.lg),
-      child: Text(
-        text,
-        style: AppTextStyles.bodyMedium.copyWith(
-          fontWeight: isBold ? FontWeight.w600 : FontWeight.w400,
+          dataRowMinHeight: 60,
+          dataRowMaxHeight: 60,
+          columnSpacing: 20,
+          columns: const [
+            DataColumn(label: Text('QUOTATION ID')),
+            DataColumn(label: Text('CLIENT')),
+            DataColumn(label: Text('DATE')),
+            DataColumn(label: Text('AMOUNT')),
+            DataColumn(label: Text('STATUS')),
+            DataColumn(label: Text('ACTIONS')),
+          ],
+          rows: quotations.map((q) {
+            final statusLabel = _getStatusLabel(q.status);
+            final statusColor = _getStatusColor(q.status);
+            return DataRow(
+              cells: [
+                DataCell(Text(q.quotationNo, style: AppTextStyles.caption.copyWith(color: AppColors.primary, fontWeight: FontWeight.w600))),
+                DataCell(Text(q.customerName, style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.w600))),
+                DataCell(Text(formatDate.format(q.quotationDate), style: AppTextStyles.caption)),
+                DataCell(Text(formatCurrency.format(q.grandTotal), style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.w700))),
+                DataCell(_buildStatusBadge(statusLabel, statusColor)),
+                DataCell(Row(
+                  children: [
+                    Tooltip(
+                      message: 'Change Status',
+                      child: InkWell(
+                        onTap: () => _showStatusUpdateDialog(context, q),
+                        borderRadius: BorderRadius.circular(AppBorderRadius.sm),
+                        child: const Padding(
+                          padding: EdgeInsets.all(4),
+                          child: Icon(Icons.edit_outlined, size: 18, color: AppColors.primary),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: AppSpacing.sm),
+                    Tooltip(
+                      message: 'Send Quotation',
+                      child: InkWell(
+                        onTap: () => _showSendOptionsDialog(context, q),
+                        borderRadius: BorderRadius.circular(AppBorderRadius.sm),
+                        child: const Padding(
+                          padding: EdgeInsets.all(4),
+                          child: Icon(Icons.send_rounded, size: 18, color: AppColors.primary),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: AppSpacing.sm),
+                    Tooltip(
+                      message: 'Delete',
+                      child: InkWell(
+                        onTap: () {
+                          ref.read(quotationNotifierProvider.notifier).deleteQuotation(q.id);
+                        },
+                        borderRadius: BorderRadius.circular(AppBorderRadius.sm),
+                        child: const Padding(
+                          padding: EdgeInsets.all(4),
+                          child: Icon(Icons.delete_outline_rounded, size: 18, color: AppColors.error),
+                        ),
+                      ),
+                    ),
+                  ],
+                )),
+              ],
+            );
+          }).toList(),
         ),
       ),
     );
   }
+  
+  // Empty blocks since we now use EmptyStatePlaceholder directly
+  // and we replaced _buildHeaderCell and _buildCell functionality with DataTable cells
+
 
   Widget _buildStatusBadge(String label, Color color) {
     return Container(

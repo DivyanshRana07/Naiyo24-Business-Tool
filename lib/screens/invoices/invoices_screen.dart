@@ -15,9 +15,15 @@ import '../../widgets/send_options_dialog.dart';
 import '../../widgets/empty_state_placeholder.dart';
 import '../../widgets/loading_placeholder.dart';
 
+bool _isFirstLoadInv = true;
 final asyncInvoicesProvider = FutureProvider.autoDispose((ref) async {
-  await Future.delayed(const Duration(seconds: 1));
-  return ref.watch(invoiceNotifierProvider);
+  ref.onDispose(() => _isFirstLoadInv = true);
+  final data = ref.watch(invoiceNotifierProvider);
+  if (_isFirstLoadInv) {
+    await Future.delayed(const Duration(seconds: 1));
+    _isFirstLoadInv = false;
+  }
+  return data;
 });
 
 /// Invoice List screen — shows all saved invoices from [InvoiceNotifier].

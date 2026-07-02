@@ -236,7 +236,9 @@ class _CreateInvoiceScreenState
         const Icon(Icons.receipt_long_rounded,
             color: AppColors.primary, size: 28),
         const SizedBox(width: AppSpacing.sm),
-        Text('Create New Invoice', style: AppTextStyles.h1),
+        Expanded(
+          child: Text('Create New Invoice', style: AppTextStyles.h1),
+        ),
       ],
     );
   }

@@ -9,7 +9,20 @@ import '../../routes/app_routes.dart';
 import '../../widgets/dashboard_app_bar.dart';
 import '../../widgets/side_navigation.dart';
 import '../../widgets/export_dialog.dart';
+import '../../widgets/loading_placeholder.dart';
+import '../../widgets/empty_state_placeholder.dart';
 import 'widgets/vendor_form_dialog.dart';
+
+bool _isFirstLoadVen = true;
+final asyncVendorProvider = FutureProvider.autoDispose((ref) async {
+  ref.onDispose(() => _isFirstLoadVen = true);
+  final data = ref.watch(vendorNotifierProvider);
+  if (_isFirstLoadVen) {
+    await Future.delayed(const Duration(seconds: 1));
+    _isFirstLoadVen = false;
+  }
+  return data;
+});
 
 class VendorsScreen extends ConsumerWidget {
   const VendorsScreen({super.key});
@@ -165,102 +178,99 @@ class VendorsScreen extends ConsumerWidget {
                     ],
                   ),
                   const SizedBox(height: AppSpacing.xxl),
-                  if (vendors.isEmpty)
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(AppSpacing.xxl),
-                      decoration: BoxDecoration(
-                        color: AppColors.surface,
-                        borderRadius: BorderRadius.circular(AppBorderRadius.xl),
-                        border: Border.all(color: AppColors.border),
-                      ),
-                      child: Center(
-                        child: Column(
-                          children: [
-                            Icon(Icons.store_outlined, size: 64, color: AppColors.textSecondary.withValues(alpha: 0.4)),
-                            const SizedBox(height: AppSpacing.lg),
-                            Text('No vendors added yet.', style: AppTextStyles.h3),
-                            const SizedBox(height: AppSpacing.sm),
-                            Text('Add your first vendor to start creating purchase orders.', style: AppTextStyles.bodyMedium),
-                          ],
+                  ref.watch(asyncVendorProvider).when(
+                    loading: () => const LoadingPlaceholder(message: 'Loading vendors...'),
+                    error: (err, stack) => Center(child: Text('Error: $err')),
+                    data: (vendorsList) {
+                      if (vendorsList.isEmpty) {
+                        return EmptyStatePlaceholder(
+                          icon: Icons.store_outlined,
+                          title: 'No vendors added yet',
+                          message: 'Add your first vendor to start creating purchase orders.',
+                          actionLabel: 'Add New Vendor',
+                          onAction: () => context.push(AppRoutes.newVendor),
+                        );
+                      }
+                      
+                      return Container(
+                        width: double.infinity,
+                        decoration: BoxDecoration(
+                          color: AppColors.surface,
+                          borderRadius: BorderRadius.circular(AppBorderRadius.xl),
+                          border: Border.all(color: AppColors.border),
                         ),
-                      ),
-                    )
-                  else
-                    Container(
-                      width: double.infinity,
-                      decoration: BoxDecoration(
-                        color: AppColors.surface,
-                        borderRadius: BorderRadius.circular(AppBorderRadius.xl),
-                        border: Border.all(color: AppColors.border),
-                      ),
-                      clipBehavior: Clip.hardEdge,
-                      child: DataTable(
-                        headingRowColor: WidgetStateProperty.all(AppColors.surfaceVariant),
-                        headingTextStyle: AppTextStyles.caption.copyWith(
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.textSecondary,
-                          letterSpacing: 0.5,
-                        ),
-                        dividerThickness: 1,
-                        dataRowMaxHeight: 64,
-                        dataRowMinHeight: 64,
-                        columns: const [
-                          DataColumn(label: Text('VENDOR NAME')),
-                          DataColumn(label: Text('CONTACT PERSON')),
-                          DataColumn(label: Text('EMAIL')),
-                          DataColumn(label: Text('PHONE')),
-                          DataColumn(label: Text('ACTIONS')),
-                        ],
-                        rows: vendors.map((vendor) {
-                          return DataRow(
-                            cells: [
-                              DataCell(
-                                Row(
-                                  children: [
-                                    CircleAvatar(
-                                      radius: 16,
-                                      backgroundColor: AppColors.primary.withValues(alpha: 0.1),
-                                      child: Text(
-                                        vendor.name.isNotEmpty ? vendor.name[0].toUpperCase() : 'V',
-                                        style: AppTextStyles.labelLarge.copyWith(color: AppColors.primary),
-                                      ),
-                                    ),
-                                    const SizedBox(width: AppSpacing.md),
-                                    Text(vendor.name, style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.w600)),
-                                  ],
-                                ),
-                              ),
-                              DataCell(Text(vendor.contactPerson.isEmpty ? '-' : vendor.contactPerson, style: AppTextStyles.bodyMedium)),
-                              DataCell(Text(vendor.email.isEmpty ? '-' : vendor.email, style: AppTextStyles.bodyMedium)),
-                              DataCell(Text(vendor.phone.isEmpty ? '-' : vendor.phone, style: AppTextStyles.bodyMedium)),
-                              DataCell(
-                                Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    IconButton(
-                                      icon: const Icon(Icons.edit_outlined, size: 18, color: AppColors.textSecondary),
-                                      onPressed: () {
-                                        showDialog(
-                                          context: context,
-                                          builder: (_) => VendorFormDialog(existingVendor: vendor),
-                                        );
-                                      },
-                                    ),
-                                    IconButton(
-                                      icon: const Icon(Icons.delete_outline_rounded, size: 18, color: AppColors.error),
-                                      onPressed: () {
-                                        ref.read(vendorNotifierProvider.notifier).deleteVendor(vendor.id);
-                                      },
-                                    ),
-                                  ],
-                                ),
-                              ),
+                        clipBehavior: Clip.hardEdge,
+                        child: SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          child: DataTable(
+                            headingRowColor: WidgetStateProperty.all(AppColors.surfaceVariant),
+                            headingTextStyle: AppTextStyles.caption.copyWith(
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.textSecondary,
+                              letterSpacing: 0.5,
+                            ),
+                            dividerThickness: 1,
+                            dataRowMaxHeight: 64,
+                            dataRowMinHeight: 64,
+                            columns: const [
+                              DataColumn(label: Text('VENDOR NAME')),
+                              DataColumn(label: Text('CONTACT PERSON')),
+                              DataColumn(label: Text('EMAIL')),
+                              DataColumn(label: Text('PHONE')),
+                              DataColumn(label: Text('ACTIONS')),
                             ],
-                          );
-                        }).toList(),
-                      ),
-                    ),
+                            rows: vendorsList.map((vendor) {
+                              return DataRow(
+                                cells: [
+                                  DataCell(
+                                    Row(
+                                      children: [
+                                        CircleAvatar(
+                                          radius: 16,
+                                          backgroundColor: AppColors.primary.withValues(alpha: 0.1),
+                                          child: Text(
+                                            vendor.name.isNotEmpty ? vendor.name[0].toUpperCase() : 'V',
+                                            style: AppTextStyles.labelLarge.copyWith(color: AppColors.primary),
+                                          ),
+                                        ),
+                                        const SizedBox(width: AppSpacing.md),
+                                        Text(vendor.name, style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.w600)),
+                                      ],
+                                    ),
+                                  ),
+                                  DataCell(Text(vendor.contactPerson.isEmpty ? '-' : vendor.contactPerson, style: AppTextStyles.bodyMedium)),
+                                  DataCell(Text(vendor.email.isEmpty ? '-' : vendor.email, style: AppTextStyles.bodyMedium)),
+                                  DataCell(Text(vendor.phone.isEmpty ? '-' : vendor.phone, style: AppTextStyles.bodyMedium)),
+                                  DataCell(
+                                    Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        IconButton(
+                                          icon: const Icon(Icons.edit_outlined, size: 18, color: AppColors.textSecondary),
+                                          onPressed: () {
+                                            showDialog(
+                                              context: context,
+                                              builder: (_) => VendorFormDialog(existingVendor: vendor),
+                                            );
+                                          },
+                                        ),
+                                        IconButton(
+                                          icon: const Icon(Icons.delete_outline_rounded, size: 18, color: AppColors.error),
+                                          onPressed: () {
+                                            ref.read(vendorNotifierProvider.notifier).deleteVendor(vendor.id);
+                                          },
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              );
+                            }).toList(),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
                 ],
               ),
             ),

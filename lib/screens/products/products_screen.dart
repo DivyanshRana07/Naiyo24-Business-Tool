@@ -17,14 +17,26 @@ import '../../widgets/export_dialog.dart';
 import '../../widgets/empty_state_placeholder.dart';
 import '../../widgets/loading_placeholder.dart';
 
+bool _isFirstLoadProd = true;
 final asyncProductsProvider = FutureProvider.autoDispose((ref) async {
-  await Future.delayed(const Duration(seconds: 1));
-  return ref.watch(productNotifierProvider);
+  ref.onDispose(() => _isFirstLoadProd = true);
+  final data = ref.watch(productNotifierProvider);
+  if (_isFirstLoadProd) {
+    await Future.delayed(const Duration(seconds: 1));
+    _isFirstLoadProd = false;
+  }
+  return data;
 });
 
+bool _isFirstLoadServ = true;
 final asyncServicesProvider = FutureProvider.autoDispose((ref) async {
-  await Future.delayed(const Duration(seconds: 1));
-  return ref.watch(serviceNotifierProvider);
+  ref.onDispose(() => _isFirstLoadServ = true);
+  final data = ref.watch(serviceNotifierProvider);
+  if (_isFirstLoadServ) {
+    await Future.delayed(const Duration(seconds: 1));
+    _isFirstLoadServ = false;
+  }
+  return data;
 });
 
 /// Products & Services management screen.

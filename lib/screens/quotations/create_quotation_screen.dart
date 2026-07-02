@@ -227,12 +227,14 @@ class _CreateQuotationScreenState
         const Icon(Icons.assignment_rounded,
             color: AppColors.primary, size: 28),
         const SizedBox(width: AppSpacing.sm),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Create New Quotation', style: AppTextStyles.h1),
-            Text('Create and send professional quotations to your customers', style: AppTextStyles.bodySmall),
-          ],
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Create New Quotation', style: AppTextStyles.h1),
+              Text('Create and send professional quotations to your customers', style: AppTextStyles.bodySmall),
+            ],
+          ),
         ),
       ],
     );

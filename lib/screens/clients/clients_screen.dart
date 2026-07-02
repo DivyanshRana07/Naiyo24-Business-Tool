@@ -14,9 +14,15 @@ import '../../widgets/export_dialog.dart';
 import '../../widgets/empty_state_placeholder.dart';
 import '../../widgets/loading_placeholder.dart';
 
+bool _isFirstLoadCus = true;
 final asyncCustomersProvider = FutureProvider.autoDispose((ref) async {
-  await Future.delayed(const Duration(seconds: 1));
-  return ref.watch(customerNotifierProvider);
+  ref.onDispose(() => _isFirstLoadCus = true);
+  final data = ref.watch(customerNotifierProvider);
+  if (_isFirstLoadCus) {
+    await Future.delayed(const Duration(seconds: 1));
+    _isFirstLoadCus = false;
+  }
+  return data;
 });
 
 /// Customer / Client management screen.
